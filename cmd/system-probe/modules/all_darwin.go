@@ -3,12 +3,15 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-//go:build !(linux || windows || darwin)
+//go:build darwin
 
-// Package modules is all the module definitions for system-probe
 package modules
 
-import "github.com/DataDog/datadog-agent/cmd/system-probe/api/module"
+import (
+	"github.com/DataDog/datadog-agent/cmd/system-probe/api/module"
+)
 
 // All System Probe modules should register their factories here
-var All = []module.Factory{}
+var All = []module.Factory{
+	EventMonitor,
+}
