@@ -7,7 +7,6 @@
 package process
 
 import (
-	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -190,8 +189,6 @@ func (p *Resolver) Snapshot() {
 		if err != nil {
 			log.Errorf("failted to fetch create time: %v", err)
 		}
-
-		fmt.Printf("fp: %+v\n", fp)
 
 		e := p.processCacheEntryPool.Get()
 		e.PIDContext.Pid = Pid(fp.Pid)

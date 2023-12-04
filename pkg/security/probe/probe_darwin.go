@@ -128,8 +128,10 @@ func (dp *DarwinProbe) Stop() {
 	dp.cancelFnc()
 }
 func (dp *DarwinProbe) SendStats() error { return nil }
-func (dp *DarwinProbe) Snapshot() error  { return nil }
-func (dp *DarwinProbe) Close() error     { return nil }
+func (dp *DarwinProbe) Snapshot() error {
+	return dp.resolvers.Snapshot()
+}
+func (dp *DarwinProbe) Close() error { return nil }
 func (dp *DarwinProbe) NewModel() *model.Model {
 	return NewDarwinModel()
 }
