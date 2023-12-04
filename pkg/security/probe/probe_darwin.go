@@ -20,6 +20,7 @@ import (
 	"github.com/DataDog/datadog-agent/pkg/security/secl/model"
 	"github.com/DataDog/datadog-agent/pkg/security/secl/rules"
 	"github.com/DataDog/datadog-agent/pkg/security/serializers"
+	"github.com/DataDog/datadog-agent/pkg/util/log"
 )
 
 type DarwinProbe struct {
@@ -92,17 +93,19 @@ func (dp *DarwinProbe) Start() error {
 func (dp *DarwinProbe) pushEvent(esev *ESEvent) {
 	event := dp.probe.zeroEvent()
 	event.Type = uint32(model.ExecEventType)
-	mp := &model.Process{
-		PIDContext: model.PIDContext{
-			Pid: esev.Event.Exec.Target.AuditToken.Pid,
-		},
-		FileEvent: model.FileEvent{
-			PathnameStr: esev.Event.Exec.Target.Executable.Path,
-		},
-		Argv: esev.Event.Exec.Args,
+
+	pid := esev.Event.Exec.Target.AuditToken.Pid
+
+	// TODO(paulcacheux): add parent pid
+	pce, err := dp.resolvers.ProcessResolver.AddNewEntry(pid, 1, esev.Event.Exec.Target.Executable.Path, esev.Event.Exec.Args)
+	if err != nil {
+		log.Errorf("error in resolver %v", err)
+		return
 	}
-	event.Exec.Process = mp
-	event.ProcessContext = &model.ProcessContext{Process: *mp}
+
+	event.Exec.Process = &pce.Process
+	event.ProcessCacheEntry = pce
+	event.ProcessContext = &pce.ProcessContext
 	dp.DispatchEvent(event)
 }
 

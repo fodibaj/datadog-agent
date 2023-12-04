@@ -80,12 +80,12 @@ func (p *Resolver) DeleteEntry(pid uint32, exitTime time.Time) {
 }
 
 // AddNewEntry add a new process entry to the cache
-func (p *Resolver) AddNewEntry(pid uint32, ppid uint32, file string, commandLine string) (*model.ProcessCacheEntry, error) {
+func (p *Resolver) AddNewEntry(pid uint32, ppid uint32, file string, args []string) (*model.ProcessCacheEntry, error) {
 	e := p.processCacheEntryPool.Get()
 	e.PIDContext.Pid = pid
 	e.PPid = ppid
 
-	e.Process.CmdLine = commandLine
+	e.Process.Argv = args
 	e.Process.FileEvent.PathnameStr = file
 	e.Process.FileEvent.BasenameStr = filepath.Base(e.Process.FileEvent.PathnameStr)
 	e.ExecTime = time.Now()
