@@ -67,12 +67,12 @@ func (dp *DarwinProbe) Start() error {
 		for {
 			select {
 			case <-dp.ctx.Done():
-				break
+				cmd.Process.Kill()
+				cmd.Wait()
+				return
 			}
 		}
 
-		cmd.Process.Kill()
-		cmd.Wait()
 	}()
 
 	go func() {
