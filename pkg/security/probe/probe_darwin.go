@@ -15,6 +15,7 @@ import (
 
 	"github.com/DataDog/datadog-agent/pkg/security/config"
 	"github.com/DataDog/datadog-agent/pkg/security/probe/kfilters"
+	"github.com/DataDog/datadog-agent/pkg/security/resolvers"
 	"github.com/DataDog/datadog-agent/pkg/security/secl/compiler/eval"
 	"github.com/DataDog/datadog-agent/pkg/security/secl/model"
 	"github.com/DataDog/datadog-agent/pkg/security/secl/rules"
@@ -23,6 +24,7 @@ import (
 
 type DarwinProbe struct {
 	probe         *Probe
+	resolvers     *resolvers.Resolvers
 	fieldHandlers *FieldHandlers
 	ctx           context.Context
 	cancelFnc     context.CancelFunc
@@ -30,8 +32,15 @@ type DarwinProbe struct {
 
 func NewDarwinProbe(p *Probe, config *config.Config, opts Opts) (*DarwinProbe, error) {
 	ctx, cancelFnc := context.WithCancel(context.Background())
+
+	resolvers, err := resolvers.NewResolvers(config, opts.StatsdClient, p.scrubber)
+	if err != nil {
+		return nil, err
+	}
+
 	return &DarwinProbe{
 		probe:         p,
+		resolvers:     resolvers,
 		fieldHandlers: &FieldHandlers{},
 		ctx:           ctx,
 		cancelFnc:     cancelFnc,
