@@ -95,9 +95,10 @@ func (dp *DarwinProbe) pushEvent(esev *ESEvent) {
 	event.Type = uint32(model.ExecEventType)
 
 	pid := esev.Event.Exec.Target.AuditToken.Pid
+	ppid := esev.Event.Exec.Target.ParentAuditToken.Pid
 
 	// TODO(paulcacheux): add parent pid
-	pce, err := dp.resolvers.ProcessResolver.AddNewEntry(pid, 1, esev.Event.Exec.Target.Executable.Path, esev.Event.Exec.Args)
+	pce, err := dp.resolvers.ProcessResolver.AddNewEntry(pid, ppid, esev.Event.Exec.Target.Executable.Path, esev.Event.Exec.Args)
 	if err != nil {
 		log.Errorf("error in resolver %v", err)
 		return
@@ -185,6 +186,9 @@ type ESEvent struct {
 				AuditToken struct {
 					Pid uint32 `json:"pid"`
 				} `json:"audit_token"`
+				ParentAuditToken struct {
+					Pid uint32 `json:"pid"`
+				} `json:"parent_audit_token"`
 				Executable struct {
 					Path string `json:"path"`
 				} `json:"executable"`
