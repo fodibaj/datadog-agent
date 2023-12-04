@@ -7,7 +7,9 @@
 package process
 
 import (
+	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +17,7 @@ import (
 	"github.com/DataDog/datadog-agent/pkg/process/procutil"
 	"github.com/DataDog/datadog-agent/pkg/security/config"
 	"github.com/DataDog/datadog-agent/pkg/security/secl/model"
+	"github.com/DataDog/datadog-agent/pkg/security/utils"
 	"github.com/DataDog/datadog-agent/pkg/util/log"
 )
 
@@ -162,5 +165,59 @@ func (p *Resolver) SendStats() error {
 
 // Snapshot snapshot existing processes
 func (p *Resolver) Snapshot() {
-	// TODO(paulcacheux): fill this
+	processes, err := utils.GetProcesses()
+	if err != nil {
+		log.Errorf("failed to list processes: %v", err)
+		return
+	}
+
+	entries := make([]*model.ProcessCacheEntry, 0, len(processes))
+
+	for _, proc := range processes {
+		fp, err := utils.GetFilledProcess(proc)
+		if err != nil {
+			log.Errorf("failed to fill process cache: %v", err)
+			continue
+		}
+
+		execPath, err := proc.Exe()
+		if err != nil {
+			log.Errorf("failed to fetch exec path: %v", err)
+			continue
+		}
+
+		pCreateTime, err := proc.CreateTime()
+		if err != nil {
+			log.Errorf("failted to fetch create time: %v", err)
+		}
+
+		fmt.Printf("fp: %+v\n", fp)
+
+		e := p.processCacheEntryPool.Get()
+		e.PIDContext.Pid = Pid(fp.Pid)
+		e.PPid = Pid(fp.Ppid)
+
+		e.Process.Argv = fp.Cmdline
+		e.Process.FileEvent.PathnameStr = execPath
+		e.Process.FileEvent.BasenameStr = filepath.Base(execPath)
+		e.ExecTime = time.Unix(0, pCreateTime*int64(time.Millisecond))
+
+		entries = append(entries, e)
+	}
+
+	// make sure to insert them in the creation time order
+	sort.Slice(entries, func(i, j int) bool {
+		entryA := entries[i]
+		entryB := entries[j]
+
+		if entryA.ExecTime.Equal(entryB.ExecTime) {
+			return entries[i].Pid < entries[j].Pid
+		}
+
+		return entryA.ExecTime.Before(entryB.ExecTime)
+	})
+
+	for _, e := range entries {
+		p.insertEntry(e)
+	}
 }
