@@ -25,6 +25,7 @@ import (
 
 type DarwinProbe struct {
 	probe         *Probe
+	event         *model.Event
 	resolvers     *resolvers.Resolvers
 	fieldHandlers *FieldHandlers
 	ctx           context.Context
@@ -91,7 +92,7 @@ func (dp *DarwinProbe) Start() error {
 }
 
 func (dp *DarwinProbe) pushEvent(esev *ESEvent) {
-	event := dp.probe.zeroEvent()
+	event := dp.zeroEvent()
 	event.Type = uint32(model.ExecEventType)
 
 	pid := esev.Event.Exec.Target.AuditToken.Pid
@@ -108,6 +109,12 @@ func (dp *DarwinProbe) pushEvent(esev *ESEvent) {
 	event.ProcessCacheEntry = pce
 	event.ProcessContext = &pce.ProcessContext
 	dp.DispatchEvent(event)
+}
+
+func (dp *DarwinProbe) zeroEvent() *model.Event {
+	dp.event.Zero()
+	dp.event.FieldHandlers = dp.fieldHandlers
+	return dp.event
 }
 
 // DispatchEvent sends an event to the probe event handler
@@ -171,11 +178,6 @@ func NewProbe(config *config.Config, opts Opts) (*Probe, error) {
 		return nil, err
 	}
 	p.PlatformProbe = pp
-
-	p.event = p.PlatformProbe.NewEvent()
-
-	// be sure to zero the probe event before everything else
-	p.zeroEvent()
 
 	return p, nil
 }
