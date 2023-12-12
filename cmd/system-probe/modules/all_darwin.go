@@ -5,6 +5,7 @@
 
 //go:build darwin
 
+//nolint:revive // TODO(EBPF) Fix revive linter
 package modules
 
 import (

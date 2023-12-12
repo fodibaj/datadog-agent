@@ -23,6 +23,7 @@ import (
 	"github.com/DataDog/datadog-agent/pkg/util/log"
 )
 
+// DarwinProbe defines a macOS probe
 type DarwinProbe struct {
 	probe         *Probe
 	event         *model.Event
@@ -32,13 +33,14 @@ type DarwinProbe struct {
 	cancelFnc     context.CancelFunc
 }
 
+// NewDarwinProbe returns a new darwin probe
 func NewDarwinProbe(p *Probe, config *config.Config, opts Opts) (*DarwinProbe, error) {
-	ctx, cancelFnc := context.WithCancel(context.Background())
-
 	resolvers, err := resolvers.NewResolvers(config, opts.StatsdClient, p.scrubber)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx, cancelFnc := context.WithCancel(context.Background())
 
 	return &DarwinProbe{
 		probe:         p,
@@ -49,8 +51,13 @@ func NewDarwinProbe(p *Probe, config *config.Config, opts Opts) (*DarwinProbe, e
 	}, nil
 }
 
+// Setup sets up the probe
 func (dp *DarwinProbe) Setup() error { return nil }
-func (dp *DarwinProbe) Init() error  { return nil }
+
+// Init initializes the probe
+func (dp *DarwinProbe) Init() error { return nil }
+
+// Start starts the probe
 func (dp *DarwinProbe) Start() error {
 	cmd := exec.Command("/usr/bin/eslogger", "exec")
 	stdout, err := cmd.StdoutPipe()
@@ -65,15 +72,13 @@ func (dp *DarwinProbe) Start() error {
 	}
 
 	go func() {
-		for {
-			select {
-			case <-dp.ctx.Done():
-				cmd.Process.Kill()
-				cmd.Wait()
-				return
-			}
+		<-dp.ctx.Done()
+		if err := cmd.Process.Kill(); err != nil {
+			log.Errorf("error killing eslogger process: %v", err)
 		}
-
+		if err := cmd.Wait(); err != nil {
+			log.Errorf("error waiting for eslogger process: %v", err)
+		}
 	}()
 
 	go func() {
@@ -131,36 +136,65 @@ func (dp *DarwinProbe) DispatchEvent(event *model.Event) {
 	dp.probe.sendEventToSpecificEventTypeHandlers(event)
 }
 
+// Stop stops the probe
 func (dp *DarwinProbe) Stop() {
 	dp.cancelFnc()
 }
+
+// SendStats sends stats to the probe statsd client
 func (dp *DarwinProbe) SendStats() error { return nil }
+
+// Snapshot collects data on the current state of the system
 func (dp *DarwinProbe) Snapshot() error {
 	return dp.resolvers.Snapshot()
 }
+
+// Close closes the probe
 func (dp *DarwinProbe) Close() error { return nil }
+
+// NewModel returns a new model
 func (dp *DarwinProbe) NewModel() *model.Model {
 	return NewDarwinModel()
 }
+
+// DumpDiscarders dumps discarders
 func (dp *DarwinProbe) DumpDiscarders() (string, error) {
 	return "", errors.New("not supported")
 }
+
+// FlushDiscarders flushes discarders
 func (dp *DarwinProbe) FlushDiscarders() error { return nil }
+
+// ApplyRuleSet applies a rule set
 func (dp *DarwinProbe) ApplyRuleSet(_ *rules.RuleSet) (*kfilters.ApplyRuleSetReport, error) {
 	return &kfilters.ApplyRuleSetReport{}, nil
 }
+
+// OnNewDiscarder is called when a new discarder is created
 func (dp *DarwinProbe) OnNewDiscarder(_ *rules.RuleSet, _ *model.Event, _ eval.Field, _ eval.EventType) {
 }
-func (dp *DarwinProbe) HandleActions(_ *rules.Rule, _ eval.Event) {}
+
+// HandleActions handles actions
+func (dp *DarwinProbe) HandleActions(_ *eval.Context, _ *rules.Rule) {}
+
+// NewEvent returns a new event
 func (dp *DarwinProbe) NewEvent() *model.Event {
 	return NewDarwinEvent(dp.fieldHandlers)
 }
+
+// GetFieldHandlers returns the field handlers
 func (dp *DarwinProbe) GetFieldHandlers() model.FieldHandlers {
 	return dp.fieldHandlers
 }
-func (dp *DarwinProbe) DumpProcessCache(_ bool) (string, error)              { return "", nil }
+
+// DumpProcessCache dumps the process cache
+func (dp *DarwinProbe) DumpProcessCache(_ bool) (string, error) { return "", nil }
+
+// AddDiscarderPushedCallback adds a discarder pushed callback
 func (dp *DarwinProbe) AddDiscarderPushedCallback(_ DiscarderPushedCallback) {}
-func (dp *DarwinProbe) GetEventTags(_ string) []string                       { return nil }
+
+// GetEventTags returns the event tags
+func (dp *DarwinProbe) GetEventTags(_ string) []string { return nil }
 
 // NewProbe instantiates a new runtime security agent probe
 func NewProbe(config *config.Config, opts Opts) (*Probe, error) {
@@ -182,6 +216,7 @@ func NewProbe(config *config.Config, opts Opts) (*Probe, error) {
 	return p, nil
 }
 
+// ESEvent is the event sent by eslogger
 type ESEvent struct {
 	Event struct {
 		Exec struct {

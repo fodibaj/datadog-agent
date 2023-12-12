@@ -33,8 +33,7 @@ type Resolver struct {
 }
 
 // NewResolver returns a new process resolver
-func NewResolver(config *config.Config, scrubber *procutil.DataScrubber) (*Resolver, error) {
-
+func NewResolver(_ *config.Config, scrubber *procutil.DataScrubber) (*Resolver, error) {
 	p := &Resolver{
 		processes: make(map[Pid]*model.ProcessCacheEntry),
 		scrubber:  scrubber,
@@ -148,13 +147,6 @@ func (p *Resolver) GetProcessCmdLineScrubbed(pr *model.Process) string {
 	}
 
 	return pr.CmdLine
-}
-
-// getCacheSize returns the cache size of the process resolver
-func (p *Resolver) getCacheSize() float64 {
-	p.RLock()
-	defer p.RUnlock()
-	return float64(len(p.processes))
 }
 
 // SendStats sends process resolver metrics

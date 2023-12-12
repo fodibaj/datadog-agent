@@ -20,7 +20,7 @@ type Resolvers struct {
 }
 
 // NewResolvers creates a new instance of Resolvers
-func NewResolvers(config *config.Config, statsdClient statsd.ClientInterface, scrubber *procutil.DataScrubber) (*Resolvers, error) {
+func NewResolvers(config *config.Config, _ statsd.ClientInterface, scrubber *procutil.DataScrubber) (*Resolvers, error) {
 	processResolver, err := process.NewResolver(config, scrubber)
 	if err != nil {
 		return nil, err
