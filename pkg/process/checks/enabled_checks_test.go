@@ -6,7 +6,6 @@
 package checks
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -90,11 +89,7 @@ func TestConnectionsCheck(t *testing.T) {
 		scfg.SetWithoutSource("system_probe_config.enabled", true)
 
 		enabledChecks := getEnabledChecks(t, cfg, scfg)
-		if runtime.GOOS == "darwin" {
-			assertNotContainsCheck(t, enabledChecks, ConnectionsCheckName)
-		} else {
-			assertContainsCheck(t, enabledChecks, ConnectionsCheckName)
-		}
+		assertContainsCheck(t, enabledChecks, ConnectionsCheckName)
 	})
 
 	t.Run("disabled", func(t *testing.T) {
