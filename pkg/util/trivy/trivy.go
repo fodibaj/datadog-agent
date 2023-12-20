@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -76,18 +77,22 @@ type Collector struct {
 var globalCollector *Collector
 
 func getDefaultArtifactOption(root string, opts sbom.ScanOptions) artifact.Option {
+	parallel := 1
+	if opts.Fast {
+		parallel = runtime.NumCPU()
+	}
+
 	option := artifact.Option{
 		Offline:           true,
 		NoProgress:        true,
 		DisabledAnalyzers: DefaultDisabledCollectors(opts.Analyzers),
-		Slow:              !opts.Fast,
+		Parallel:          parallel,
 		SBOMSources:       []string{},
 		DisabledHandlers:  DefaultDisabledHandlers(),
-		CollectFiles:      opts.CollectFiles,
 	}
 
 	if len(opts.Analyzers) == 1 && opts.Analyzers[0] == OSAnalyzers {
-		option.OnlyDirs = []string{"/etc", "/usr/lib", "/var/lib/dpkg/**", "/var/lib/rpm/**", "/usr/lib/sysimage/**", "/lib/apk/**"}
+		option.OnlyDirs = []string{"/etc/**", "/var/lib/dpkg/**", "/var/lib/rpm/**", "/usr/lib/sysimage/**", "/lib/apk/**"}
 		if root != "" {
 			// OnlyDirs is handled differently for image than for filesystem.
 			// This needs to be fixed properly but in the meantime, use absolute
