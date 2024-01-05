@@ -104,7 +104,7 @@ require (
 	github.com/DataDog/datadog-go/v5 v5.4.0
 	// do not update datadog-operator to 1.2.1 because the indirect dependency github.com/DataDog/datadog-api-client-go/v2 v2.15.0 is trigger a huge Go heap memory increase.
 	github.com/DataDog/datadog-operator v1.1.0
-	github.com/DataDog/ebpf-manager v0.4.0
+	github.com/DataDog/ebpf-manager v0.4.1-0.20240130204502-eeb774f5f750
 	github.com/DataDog/gopsutil v1.2.2
 	github.com/DataDog/nikos v1.12.3
 	github.com/DataDog/opentelemetry-mapping-go/pkg/otlp/attributes v0.11.0
@@ -792,3 +792,5 @@ exclude (
 replace github.com/aquasecurity/go-dep-parser => github.com/lebauce/go-dep-parser v0.0.0-20231030190658-51bbb436f1b8
 
 replace github.com/aquasecurity/trivy-db => github.com/lebauce/trivy-db v0.0.0-20231031000443-2d41e0fab0ae
+
+replace github.com/cilium/ebpf => github.com/brycekahle/ebpf v0.0.0-20240130195126-913f5862eef2
