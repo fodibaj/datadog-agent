@@ -184,6 +184,7 @@ func (c *Check) sendFargateTaskEvent() {
 				},
 			},
 		},
+		Ch: make(chan struct{}),
 	})
 }
 
