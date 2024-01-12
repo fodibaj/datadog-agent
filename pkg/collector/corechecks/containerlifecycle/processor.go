@@ -155,8 +155,10 @@ func (p *processor) processTask(task *workloadmeta.ECSTask) error {
 	event.withEventType(types.EventNameDelete)
 	event.withObjectID(task.GetID().ID)
 	event.withSource(string(workloadmeta.SourceNodeOrchestrator))
-
-	// we don't have exit timestamp for tasks in the response of metadata v1 api, so we use the current timestamp
+	if task.LaunchType == workloadmeta.ECSLaunchTypeFargate {
+		event.withSource(string(workloadmeta.SourceRuntime))
+	}
+	// we don't have exit timestamp for tasks in the response of metadata api, so we use the current timestamp
 	ts := time.Now().Unix()
 	event.withTaskExitTimestamp(&ts)
 

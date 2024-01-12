@@ -160,11 +160,8 @@ func (c *Check) sendFargateTaskEvent() {
 		ddConfig.IsECSFargate()
 
 	if !shouldSend {
-		log.Info("Fargate task lifecycle event is not detected")
-
 		return
 	}
-	log.Info("Fargate task lifecycle event is detected")
 
 	tasks := c.workloadmetaStore.ListECSTasks()
 	if len(tasks) != 1 {
@@ -172,16 +169,12 @@ func (c *Check) sendFargateTaskEvent() {
 		return
 	}
 
+	log.Infof("Send fargate task lifecycle event, task arn:%s", tasks[0].EntityID.ID)
 	c.processor.processEvents(workloadmeta.EventBundle{
 		Events: []workloadmeta.Event{
 			{
-				Type: workloadmeta.EventTypeUnset,
-				Entity: &workloadmeta.ECSTask{
-					EntityID: workloadmeta.EntityID{
-						Kind: workloadmeta.KindECSTask,
-						ID:   tasks[0].EntityID.ID,
-					},
-				},
+				Type:   workloadmeta.EventTypeUnset,
+				Entity: tasks[0],
 			},
 		},
 		Ch: make(chan struct{}),
