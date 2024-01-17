@@ -45,7 +45,35 @@ func (e *cachedEntity) set(source Source, entity Entity) (found, changed bool) {
 		return true, false
 	}
 
-	e.sources[source] = entity
+	newEntity := entity.DeepCopy()
+	shouldMerge := false
+	// If the entity is an ECS task or a related container, merge it with the existing one.
+	// This is because in the ECS collector, the ECS metadata endpoint v4 is used with a rate limiter.
+	// As a result, each task can only query the v4 endpoint when its cache TTL expires.
+	// In other cases, the v1 endpoint is used.
+	// It's important to ensure that data from the v1 endpoint doesn't replace the v4 data.
+	// As the v4 endpoint contains more comprehensive information than the v1.
+	switch e := entity.(type) {
+	case *ECSTask:
+		if found {
+			shouldMerge = true
+		}
+	case *Container:
+		if found && e.Owner != nil && e.Owner.Kind == KindECSTask {
+			shouldMerge = true
+		}
+	default:
+		shouldMerge = false
+	}
+
+	if shouldMerge {
+		err := newEntity.Merge(old)
+		if err != nil {
+			log.Errorf("Can not merge %+v into %+v: %s", old, newEntity, err)
+		}
+	}
+
+	e.sources[source] = newEntity
 	e.computeCache()
 
 	return found, true

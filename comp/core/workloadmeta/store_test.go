@@ -721,10 +721,38 @@ func TestGetProcess(t *testing.T) {
 }
 
 func TestListContainers(t *testing.T) {
-	container := &Container{
+	container1 := &Container{
 		EntityID: EntityID{
 			Kind: KindContainer,
 			ID:   "abc",
+		},
+	}
+	container2 := &Container{
+		EntityID: EntityID{
+			Kind: KindContainer,
+			ID:   "abc-2",
+		},
+		Owner: &EntityID{
+			Kind: KindECSTask,
+		},
+		LogDriver: "awslog",
+	}
+	container3 := &Container{
+		EntityID: EntityID{
+			Kind: KindContainer,
+			ID:   "abc-2",
+		},
+		Owner: &EntityID{
+			Kind: KindECSTask,
+		},
+	}
+	container4 := &Container{
+		EntityID: EntityID{
+			Kind: KindContainer,
+			ID:   "abc-3",
+		},
+		Owner: &EntityID{
+			Kind: KindKubernetesPod,
 		},
 	}
 
@@ -739,10 +767,24 @@ func TestListContainers(t *testing.T) {
 				{
 					Type:   EventTypeSet,
 					Source: fooSource,
-					Entity: container,
+					Entity: container1,
+				},
+				{
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: container2,
+				}, {
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: container3,
+				}, {
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: container4,
 				},
 			},
-			expectedContainers: []*Container{container},
+			// container3 is merged into container2
+			expectedContainers: []*Container{container1, container2, container4},
 		},
 		{
 			name:               "no containers stored",
@@ -765,7 +807,7 @@ func TestListContainers(t *testing.T) {
 
 			containers := s.ListContainers()
 
-			tassert.Equal(t, test.expectedContainers, containers)
+			tassert.ElementsMatch(t, test.expectedContainers, containers)
 		})
 	}
 }
@@ -1135,6 +1177,92 @@ func TestGetImage(t *testing.T) {
 				tassert.NoError(t, err)
 				tassert.Equal(t, test.expectedImage, actualImage)
 			}
+		})
+	}
+}
+
+func TestListECSTasks(t *testing.T) {
+	task1 := &ECSTask{
+		EntityID: EntityID{
+			Kind: KindECSTask,
+			ID:   "task-id-1",
+		},
+		VPCID: "123",
+	}
+	task2 := &ECSTask{
+		EntityID: EntityID{
+			Kind: KindECSTask,
+			ID:   "task-id-1",
+		},
+	}
+	task3 := &ECSTask{
+		EntityID: EntityID{
+			Kind: KindECSTask,
+			ID:   "task-id-2",
+		},
+	}
+	task4 := &ECSTask{
+		EntityID: EntityID{
+			Kind: KindECSTask,
+			ID:   "task-id-1",
+		},
+		VPCID: "123",
+	}
+
+	tests := []struct {
+		name          string
+		preEvents     []CollectorEvent
+		expectedTasks []*ECSTask
+	}{
+		{
+			name: "some tasks stored",
+			preEvents: []CollectorEvent{
+				{
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: task1,
+				},
+				{
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: task2,
+				},
+				{
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: task3,
+				},
+				{
+					Type:   EventTypeSet,
+					Source: fooSource,
+					Entity: task4,
+				},
+			},
+			// task2 is merged into task1, task4 is same as task1
+			expectedTasks: []*ECSTask{task1, task3},
+		},
+		{
+			name:          "no task stored",
+			preEvents:     nil,
+			expectedTasks: []*ECSTask{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			deps := fxutil.Test[dependencies](t, fx.Options(
+				logimpl.MockModule(),
+				config.MockModule(),
+				fx.Supply(NewParams()),
+			))
+
+			s := newWorkloadMeta(deps).(*workloadmeta)
+
+			s.handleEvents(test.preEvents)
+
+			tasks := s.ListECSTasks()
+
+			tassert.ElementsMatch(t, test.expectedTasks, tasks)
 		})
 	}
 }
