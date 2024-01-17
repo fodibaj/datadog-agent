@@ -19,6 +19,12 @@ tests_macos:
     - inv -e github.trigger-macos-test --datadog-agent-ref "$CI_COMMIT_SHA" --python-runtimes "$PYTHON_RUNTIMES" --version-cache "$VERSION_CACHE_CONTENT"
   after_script:
     - inv -e junit-macos-repack --infile junit-tests_macos.tgz --outfile junit-tests_macos-repacked.tgz
+    # Install the ci-visbility standalone CLI and upload junits
+    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+    - set +x
+    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - set -x
+    - for f in junit-*.tgz; do inv -e junit-upload --tgz-path $f; done
   artifacts:
     expire_in: 2 weeks
     when: always

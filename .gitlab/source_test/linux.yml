@@ -9,12 +9,12 @@
     - inv -e rtloader.format --raise-if-changed
     - inv -e rtloader.test
   # Placeholder script, overridden by .linux_tests when running all go tests
-  script: [ "# Skipping go tests" ]
+  script: ["# Skipping go tests"]
 
 .linux_tests:
   stage: source_test
   variables:
-    FLAVORS: '--flavors base'
+    FLAVORS: "--flavors base"
     KUBERNETES_CPU_REQUEST: 16
     KUBERNETES_MEMORY_REQUEST: 16Gi
     KUBERNETES_MEMORY_LIMIT: 16Gi
@@ -28,6 +28,13 @@
     - inv -e kitchen.invoke-unit-tests
     - popd
     - inv -e test $FLAVORS --race --profile --rerun-fails=2 --python-runtimes "$PYTHON_RUNTIMES" --coverage --cpus $KUBERNETES_CPU_REQUEST $EXTRA_OPTS --save-result-json $TEST_OUTPUT_FILE --junit-tar "junit-${CI_JOB_NAME}.tgz" --build-stdlib
+  after_script:
+    # Install the ci-visbility standalone CLI and upload junits
+    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+    - set +x
+    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - set -x
+    - for f in junit-*.tgz; do inv -e junit-upload --tgz-path $f; done
   artifacts:
     expire_in: 2 weeks
     when: always
@@ -40,7 +47,7 @@
 .linux_lint:
   stage: source_test
   variables:
-    FLAVORS: '--flavors base'
+    FLAVORS: "--flavors base"
     KUBERNETES_CPU_REQUEST: 16
     KUBERNETES_MEMORY_REQUEST: 16Gi
     KUBERNETES_MEMORY_LIMIT: 16Gi
@@ -61,11 +68,10 @@ tests_deb-x64-py2:
   extends:
     - .rtloader_tests
     - .linux_x64
-  rules:
-    !reference [.on_a6]
+  rules: !reference [.on_a6]
   needs: ["go_deps"]
   variables:
-    PYTHON_RUNTIMES: '2'
+    PYTHON_RUNTIMES: "2"
     CONDA_ENV: ddpy2
 
 tests_deb-x64-py3:
@@ -75,7 +81,7 @@ tests_deb-x64-py3:
     - .linux_x64
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
 
 tests_deb-x64-py3-fast:
@@ -85,9 +91,9 @@ tests_deb-x64-py3-fast:
     - .linux_x64
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
-    EXTRA_OPTS: '--only-modified-packages'
+    EXTRA_OPTS: "--only-modified-packages"
     TEST_OUTPUT_FILE: test_output_fast.json
   allow_failure: true
 
@@ -107,9 +113,9 @@ tests_flavor_iot_deb-x64:
     - when: on_success
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
-    FLAVORS: '--flavors iot'
+    FLAVORS: "--flavors iot"
 
 lint_flavor_iot_linux-x64:
   extends:
@@ -117,7 +123,7 @@ lint_flavor_iot_linux-x64:
     - .linux_x64
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    FLAVORS: '--flavors iot'
+    FLAVORS: "--flavors iot"
 
 tests_flavor_dogstatsd_deb-x64:
   extends:
@@ -129,9 +135,9 @@ tests_flavor_dogstatsd_deb-x64:
     - when: on_success
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
-    FLAVORS: '--flavors dogstatsd'
+    FLAVORS: "--flavors dogstatsd"
 
 lint_flavor_dogstatsd_linux-x64:
   extends:
@@ -139,7 +145,7 @@ lint_flavor_dogstatsd_linux-x64:
     - .linux_x64
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    FLAVORS: '--flavors dogstatsd'
+    FLAVORS: "--flavors dogstatsd"
 
 tests_flavor_heroku_deb-x64:
   extends:
@@ -151,9 +157,9 @@ tests_flavor_heroku_deb-x64:
     - when: on_success
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
-    FLAVORS: '--flavors heroku'
+    FLAVORS: "--flavors heroku"
 
 lint_flavor_heroku_linux-x64:
   extends:
@@ -164,22 +170,21 @@ lint_flavor_heroku_linux-x64:
     - when: on_success
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    FLAVORS: '--flavors heroku'
+    FLAVORS: "--flavors heroku"
 
 # Exclude systemd because it cannot succeed on Centos 6: the image doesn't have the shared object required by
 # https://github.com/coreos/go-systemd/blob/c8cc474ba8655dfbdb0ac7fcc09b7faf5b643caf/sdjournal/functions.go#L46
 # This is OK because the test on systemd still runs on the debian image above
 tests_rpm-x64-py2:
   extends: .rtloader_tests
-  rules:
-    !reference [.on_a6]
+  rules: !reference [.on_a6]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/rpm_x64_testing$DATADOG_AGENT_BUILDIMAGES_SUFFIX:$DATADOG_AGENT_BUILDIMAGES
   tags: ["arch:amd64"]
   needs: ["go_deps"]
   variables:
-    PYTHON_RUNTIMES: '2'
+    PYTHON_RUNTIMES: "2"
     CONDA_ENV: ddpy2
-    EXTRA_OPTS: '--build-exclude=systemd'
+    EXTRA_OPTS: "--build-exclude=systemd"
 
 tests_rpm-x64-py3:
   extends:
@@ -189,20 +194,18 @@ tests_rpm-x64-py3:
   tags: ["arch:amd64"]
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
-    EXTRA_OPTS: '--build-exclude=systemd'
-
+    EXTRA_OPTS: "--build-exclude=systemd"
 
 tests_deb-arm64-py2:
   extends: .rtloader_tests
-  rules:
-    !reference [.on_a6]
+  rules: !reference [.on_a6]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/deb_arm64$DATADOG_AGENT_BUILDIMAGES_SUFFIX:$DATADOG_AGENT_BUILDIMAGES
   tags: ["arch:arm64"]
   needs: ["go_deps"]
   variables:
-    PYTHON_RUNTIMES: '2'
+    PYTHON_RUNTIMES: "2"
     CONDA_ENV: ddpy2
 
 tests_deb-arm64-py3:
@@ -213,7 +216,7 @@ tests_deb-arm64-py3:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/deb_arm64$DATADOG_AGENT_BUILDIMAGES_SUFFIX:$DATADOG_AGENT_BUILDIMAGES
   tags: ["arch:arm64"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
 
 lint_linux-arm64:
@@ -225,13 +228,12 @@ lint_linux-arm64:
 
 tests_rpm-arm64-py2:
   extends: .rtloader_tests
-  rules:
-    !reference [.on_a6]
+  rules: !reference [.on_a6]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/rpm_arm64$DATADOG_AGENT_BUILDIMAGES_SUFFIX:$DATADOG_AGENT_BUILDIMAGES
   tags: ["arch:arm64"]
   needs: ["go_deps"]
   variables:
-    PYTHON_RUNTIMES: '2'
+    PYTHON_RUNTIMES: "2"
     CONDA_ENV: ddpy2
 
 tests_rpm-arm64-py3:
@@ -242,7 +244,7 @@ tests_rpm-arm64-py3:
   tags: ["arch:arm64"]
   needs: ["go_deps", "go_tools_deps"]
   variables:
-    PYTHON_RUNTIMES: '3'
+    PYTHON_RUNTIMES: "3"
     CONDA_ENV: ddpy3
 
 # Check consistency of go.mod file with project imports

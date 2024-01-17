@@ -99,6 +99,14 @@ k8s-e2e-otlp-main:
     E2E_OUTPUT_DIR: $CI_PROJECT_DIR/e2e-output
   script:
     - inv -e new-e2e-tests.run --targets $TARGETS -c ddagent:fullImagePath=669783387624.dkr.ecr.us-east-1.amazonaws.com/agent:${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA} -c ddagent:clusterAgentFullImagePath=669783387624.dkr.ecr.us-east-1.amazonaws.com/cluster-agent:${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA} -c dddogstatsd:fullImagePath=669783387624.dkr.ecr.us-east-1.amazonaws.com/dogstatsd:${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA} -c ddagent:imagePullRegistry=669783387624.dkr.ecr.us-east-1.amazonaws.com -c ddagent:imagePullUsername=AWS -c ddagent:imagePullPassword=$(aws ecr get-login-password) --junit-tar "junit-${CI_JOB_NAME}.tgz" ${EXTRA_PARAMS}
+  after_script:
+    # Install the ci-visbility standalone CLI and upload junits
+    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+    - set +x
+    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - set -x
+    - set +e
+    - for f in junit-new-e2e-*.tgz; do inv -e junit-upload --tgz-path "$f"; done
   artifacts:
     expire_in: 2 weeks
     when: always

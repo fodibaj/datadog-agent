@@ -31,6 +31,13 @@
       486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/windows_1809_${ARCH}${Env:DATADOG_AGENT_WINBUILDIMAGES_SUFFIX}:${Env:DATADOG_AGENT_WINBUILDIMAGES}
       c:\mnt\tasks\winbuildscripts\unittests.bat
     - If ($lastExitCode -ne "0") { throw "Previous command returned $lastExitCode" }
+  after_script:
+    # Install the ci-visbility standalone CLI and upload junits
+    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+    - set +x
+    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - set -x
+    - for f in junit-*.tgz; do inv -e junit-upload --tgz-path $f; done
   variables:
     TEST_OUTPUT_FILE: test_output.json
   artifacts:
