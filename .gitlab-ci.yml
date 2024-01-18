@@ -28,7 +28,6 @@ include:
   - /.gitlab/kitchen_cleanup/include.yml
   - /.gitlab/kitchen_deploy/kitchen_deploy.yml
   - /.gitlab/kitchen_testing/include.yml
-  - /.gitlab/kitchen_tests_upload/kitchen_tests_upload.yml
   - /.gitlab/maintenance_jobs/include.yml
   - /.gitlab/notify/notify.yml
   - /.gitlab/package_build/include.yml
@@ -69,7 +68,6 @@ stages:
   - kitchen_deploy
   - e2e_pre_test
   - kitchen_testing
-  - kitchen_tests_upload
   - pkg_metrics
   - container_build
   - container_scan
@@ -1111,8 +1109,4 @@ workflow:
       - "test/fakeintake/**/*"
       - .gitlab/fakeintake.yml
     when: manual
-<<<<<<< HEAD
     allow_failure: true
-=======
-    allow_failure: true
->>>>>>> 1022bd3beb (refactor(gitlab): classify gitlab yaml files under stages folders)

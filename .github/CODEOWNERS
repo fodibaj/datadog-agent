@@ -54,75 +54,75 @@
 # Files containing job contents are owned by teams in charge of the jobs + agent-platform
 # Files that only describe structure (eg. includes, rules) are owned by agent-platform
 
-/.gitlab/                                            @DataDog/agent-platform
+/.gitlab/                                               @DataDog/agent-platform
 
-/.gitlab/binary_build/cluster_agent_cloudfoundry.yml @DataDog/platform-integrations @DataDog/agent-platform
-/.gitlab/binary_build/cluster_agent.yml              @DataDog/container-integrations @DataDog/agent-platform
-/.gitlab/binary_build/serverless.yml                 @DataDog/serverless @DataDog/agent-platform
-/.gitlab/binary_build/system_probe.yml               @DataDog/ebpf-platform @DataDog/agent-platform
-/.gitlab/binary_build/windows.yml                    @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/binary_build/cluster_agent_cloudfoundry.yml    @DataDog/platform-integrations @DataDog/agent-platform
+/.gitlab/binary_build/cluster_agent.yml                 @DataDog/container-integrations @DataDog/agent-platform
+/.gitlab/binary_builc/fakeintake.yml                    @DataDog/agent-e2e-testing
+/.gitlab/binary_build/serverless.yml                    @DataDog/serverless @DataDog/agent-platform
+/.gitlab/binary_build/system_probe.yml                  @DataDog/ebpf-platform @DataDog/agent-platform
+/.gitlab/binary_build/windows.yml                       @DataDog/agent-platform @DataDog/windows-agent
 
-/.gitlab/benchmarks/                                 @DataDog/agent-platform @DataDog/apm-core-reliability-and-performance @DataDog/agent-apm
+/.gitlab/benchmarks/                                    @DataDog/agent-platform @DataDog/apm-core-reliability-and-performance @DataDog/agent-apm
 
-/.gitlab/deploy_6/container.yml                      @DataDog/container-integrations @DataDog/agent-platform
-/.gitlab/deploy_6/windows.yml                        @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/choco_build.yml                                @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/choco_deploy.yml                               @DataDog/agent-platform @DataDog/windows-agent
 
-/.gitlab/deploy_7/cluster_agent_cloudfoundry.yml     @DataDog/platform-integrations @DataDog/agent-platform
-/.gitlab/deploy_7/container.yml                      @DataDog/container-integrations @DataDog/agent-platform
-/.gitlab/deploy_7/windows.yml                        @DataDog/agent-platform @DataDog/windows-agent
-/.gitlab/deploy_7/winget.yml                         @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/common/publish_job_templates.yml               @DataDog/container-integrations @DataDog/agent-platform
 
-/.gitlab/deploy_dca.yml                             @DataDog/container-integrations @DataDog/agent-platform
+/.gitlab/container_build/                               @DataDog/container-integrations @DataDog/agent-platform
+/.gitlab/container_build/fakeintake.yml                 @DataDog/agent-e2e-testing @DataDog/agent-platform
+/.gitlab/container_build/docker_windows.yml             @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/container_build/docker_windows_agent6.yml      @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/container_build/docker_windows_agent7.yml      @DataDog/agent-platform @DataDog/windows-agent
 
-/.gitlab/deps_build.yml                              @DataDog/ebpf-platform @DataDog/agent-platform @DataDog/windows-agent
-/.gitlab/windows_python_build.yml                    @DataDog/windows-agent
+/.gitlab/container_scan.yml                             @DataDog/container-integrations @DataDog/agent-platform
 
-/.gitlab/kitchen_testing/windows.yml                 @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/deploy_containers/                             @DataDog/container-integrations @DataDog/agent-platform
 
-/.gitlab/docker_common/                              @DataDog/container-integrations @DataDog/agent-platform
+/.gitlab/deploy_dca/                                    @DataDog/container-integrations @DataDog/agent-platform
 
-/.gitlab/e2e.yml                                     @DataDog/container-integrations @DataDog/agent-platform
-/.gitlab/fakeintake.yml                              @DataDog/agent-e2e-testing
+/.gitlab/deploy_packages/cluster_agent_cloudfoundry.yml @DataDog/platform-integrations @DataDog/agent-platform
+/.gitlab/deploy_packages/windows.yml                    @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/deploy_packages/winget.yml                     @DataDog/agent-platform @DataDog/windows-agent
 
-/.gitlab/functional_test/security_agent.yml          @DataDog/agent-security @DataDog/agent-platform
-/.gitlab/functional_test/serverless.yml              @DataDog/serverless @DataDog/agent-platform
-/.gitlab/functional_test_cleanup.yml                 @DataDog/agent-security @DataDog/ebpf-platform @DataDog/agent-platform
-/.gitlab/functional_test/system_probe_windows.yml    @DataDog/agent-platform @DataDog/windows-kernel-integrations
-/.gitlab/functional_test/common.yml                  @DataDog/agent-platform @DataDog/windows-kernel-integrations @DataDog/ebpf-platform
-/.gitlab/functional_test_sysprobe/system_probe.yml   @DataDog/ebpf-platform @DataDog/agent-platform
+/.gitlab/deps_build/                                    @DataDog/ebpf-platform @DataDog/agent-platform @DataDog/windows-agent
+   
+/.gitlab/dev_container_deploy/                          @DataDog/container-integrations @DataDog/agent-platform
+/.gitlab/dev_container_deploy/fakeintake.yml            @DataDog/agent-e2e-testing
+/.gitlab/dev_container_deploy/docker_windows.yml        @DataDog/agent-platform @DataDog/windows-agent
+   
+/.gitlab/e2e/                                           @DataDog/container-integrations @DataDog/agent-platform
+   
+/.gitlab/functional_test/common.yml                     @DataDog/agent-platform @DataDog/windows-kernel-integrations @DataDog/ebpf-platform
+/.gitlab/functional_test/regression_detector.yml        @DataDog/single-machine-performance
+/.gitlab/functional_test/security_agent.yml             @DataDog/agent-security @DataDog/agent-platform
+/.gitlab/functional_test/serverless.yml                 @DataDog/serverless @DataDog/agent-platform
+/.gitlab/functional_test/system_probe_windows.yml       @DataDog/agent-platform @DataDog/windows-kernel-integrations
+/.gitlab/functional_test/workload_checks.yml            @DataDog/single-machine-performance
+   
+/.gitlab/functional_test_cleanup/                       @DataDog/agent-security @DataDog/ebpf-platform @DataDog/agent-platform
+/.gitlab/functional_test_sysprobe/                      @DataDog/ebpf-platform @DataDog/agent-platform
+   
+/.gitlab/integration_test/windows.yml                   @DataDog/agent-platform @DataDog/windows-agent
+   
+/.gitlab/internal_image_deploy/                         @DataDog/container-integrations @DataDog/agent-platform
+   
+/.gitlab/kernel_matrix_testing/                         @DataDog/ebpf-platform
+   
+/.gitlab/kitchen_testing/windows.yml                    @DataDog/agent-platform @DataDog/windows-agent
+/.gitlab/kitchen_testing/new-e2e_testing/windows.yml    @DataDog/agent-platform @DataDog/windows-agent
+   
+/.gitlab/maintenance_jobs/docker.yml                    @DataDog/container-integrations @DataDog/agent-platform
+   
+/.gitlab/package_build/windows.yml                      @DataDog/agent-platform @DataDog/windows-agent
+   
+/.gitlab/source_test/ebpf.yml                           @DataDog/ebpf-platform @DataDog/agent-platform
+/.gitlab/source_test/windows.yml                        @DataDog/agent-platform @DataDog/windows-agent
 
-/.gitlab/integration_test/windows.yml                @DataDog/agent-platform @DataDog/windows-agent
 
-/.gitlab/kernel_version_testing                      @DataDog/ebpf-platform
-
-/.gitlab/container_build/                            @DataDog/container-integrations @DataDog/agent-platform
-/.gitlab/container_build/docker_windows_agent6.yml   @DataDog/agent-platform @DataDog/windows-agent
-/.gitlab/container_build/docker_windows_agent7.yml   @DataDog/agent-platform @DataDog/windows-agent
-
-/.gitlab/dev_container_deploy/                       @DataDog/container-integrations @DataDog/agent-platform
-/.gitlab/dev_container_deploy/docker_windows.yml     @DataDog/agent-platform @DataDog/windows-agent
-
-/.gitlab/container_scan.yml                          @DataDog/container-integrations @DataDog/agent-platform
-
-/.gitlab/internal_image_deploy.yml                   @DataDog/container-integrations @DataDog/agent-platform
-
-/.gitlab/maintenance_jobs/docker.yml                 @DataDog/container-integrations @DataDog/agent-platform
-
-/.gitlab/source_test/ebpf.yml                        @DataDog/ebpf-platform @DataDog/agent-platform
-/.gitlab/source_test/windows.yml                     @DataDog/agent-platform @DataDog/windows-agent
-
-/.gitlab/package_build/windows.yml                   @DataDog/agent-platform @DataDog/windows-agent
-
-/.gitlab/choco_build.yml                             @DataDog/agent-platform @DataDog/windows-agent
-/.gitlab/choco_deploy.yml                            @DataDog/agent-platform @DataDog/windows-agent
-
-/.gitlab/benchmarks/benchmarks.yml                   @DataDog/agent-apm
-
-/.gitlab/functional_test/regression_detector.yml     @DataDog/single-machine-performance
-/.gitlab/functional_test/workload_checks.yml         @DataDog/single-machine-performance
-
-/.gitlab/new-e2e_testing/windows.yml                 @DataDog/agent-platform @DataDog/windows-agent
-
+/.gitlab/source_test_stats/windows.yml                  @DataDog/agent-platform @DataDog/windows-agent
+   
 /chocolatey/                            @DataDog/windows-agent
 
 /cmd/                                   @DataDog/agent-shared-components
