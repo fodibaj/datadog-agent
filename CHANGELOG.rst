@@ -1,6 +1,6 @@
-=============
+=================================
 Release Notes
-=============
+=================================
 
 .. _Release Notes_7.50.3:
 
@@ -26,7 +26,7 @@ Bug Fixes
 .. _Release Notes_7.50.2:
 
 7.50.2 / 6.50.2
-======
+====================================
 
 .. _Release Notes_7.50.2_Prelude:
 
@@ -62,7 +62,7 @@ Bug Fixes
 .. _Release Notes_7.50.1:
 
 7.50.1 / 6.50.1
-======
+================
 
 .. _Release Notes_7.50.1_Prelude:
 
@@ -80,7 +80,7 @@ Bug Fixes
 .. _Release Notes_7.50.0:
 
 7.50.0 / 6.50.0
-======
+================
 
 .. _Release Notes_7.50.0_Prelude:
 
@@ -99,7 +99,7 @@ Upgrade Notes
 
 - The `win32_event_log check <https://docs.datadoghq.com/integrations/win32_event_log/?tab=events>`_
   has moved from Python `(integrations-core#16108) <https://github.com/DataDog/integrations-core/pull/16108>`_
-  to Go `(#20701 <https://github.com/DataDog/datadog-agent/pull/20701>)`_.
+  to Go `(#20701) <https://github.com/DataDog/datadog-agent/pull/20701>`_.
   All ``legacy_mode: false`` configuration options are backwards compatible except for some regular expressions
   used in the ``included_messages`` and ``excluded_messages`` options.
   For example, Go regular expressions do not support lookahead or lookbehind assertions. If you do not
@@ -225,8 +225,10 @@ Enhancement Notes
 
 - Add logic to support multiple tags created by a single label/annotaion. 
   For example, add the following config to extract tags for chart_name and app_chart_name. 
+
     podLabelsAsTags: 
       chart_name: chart_name, app_chart_name 
+
   Note: the format must be a comma-separated list of tags.
 
 - The logs collection pipeline has been through a refactor to support 
@@ -330,7 +332,7 @@ Bug Fixes
 .. _Release Notes_7.49.1:
 
 7.49.1 / 6.49.1
-======
+================
 
 .. _Release Notes_7.49.1_Prelude:
 
@@ -360,7 +362,7 @@ Bug Fixes
 .. _Release Notes_7.49.0:
 
 7.49.0 / 6.49.0
-======
+================
 
 .. _Release Notes_7.49.0_Prelude:
 
@@ -417,7 +419,7 @@ New Features
 - CWS now computes hashes for all the files involved in the generation of a Security Profile and an Anomaly Detection Event
 
 - [Beta] Cluster agent supports APM Single Step Instrumentation for Kubernetes.
-  Can be enabled in Kubernetes cluster by setting ``DD_APM_INSTRUMENTATION_ENABLED=true`.
+  Can be enabled in Kubernetes cluster by setting ``DD_APM_INSTRUMENTATION_ENABLED=true``.
   Single Step Instrumentation can be turned on in specific namespaces using 
   environment variable DD_APM_INSTRUMENTATION_ENABLED_NAMESPACES.
   Single Step Instrumentation can be turned off in specific namespaces using 
@@ -524,6 +526,7 @@ Enhancement Notes
     * ``persist_connections``
     * ``allow_redirects``
     * ``auth_token``
+
   For a description of each option, refer to the sample configuration in https://github.com/DataDog/integrations-core/blob/master/openmetrics/datadog_checks/openmetrics/data/conf.yaml.example.
 
 - Improved the SBOM check function to now communicate the status of scans and any potential errors directly 
@@ -632,7 +635,7 @@ Other Notes
 .. _Release Notes_7.48.1:
 
 7.48.1 / 6.48.1
-======
+================
 
 .. _Release Notes_7.48.1_Prelude:
 
@@ -675,7 +678,7 @@ Bug Fixes
 .. _Release Notes_7.48.0:
 
 7.48.0 / 6.48.0
-======
+================
 
 .. _Release Notes_7.48.0_Prelude:
 
@@ -975,7 +978,7 @@ Other Notes
 .. _Release Notes_7.47.1:
 
 7.47.1 / 6.47.1
-======
+================
 
 .. _Release Notes_7.47.1_Prelude:
 
@@ -1001,7 +1004,7 @@ Bug Fixes
 .. _Release Notes_7.47.0:
 
 7.47.0 / 6.47.0
-======
+================
 
 .. _Release Notes_7.47.0_Prelude:
 
@@ -1272,7 +1275,7 @@ Other Notes
 .. _Release Notes_7.46.0:
 
 7.46.0 / 6.46.0
-======
+================
 
 .. _Release Notes_7.46.0_Prelude:
 
@@ -1415,6 +1418,7 @@ New Features
     - For ``Windows``: ``c:\programdata\datadog\logs\dogstatsd_info\dogstatsd-stats.log``
     - For ``Linux``: ``/var/log/datadog/dogstatsd_info/dogstatsd-stats.log``
     - For ``MacOS``: ``/opt/datadog-agent/logs/dogstatsd_info/dogstatsd-stats.log``
+
   These log files are also automatically attached to the flare.
 
 - You can adjust the dogstatsd-stats logging configuration by using:
@@ -1537,7 +1541,7 @@ Bug Fixes
 .. _Release Notes_7.45.1:
 
 7.45.1 / 6.45.1
-======
+================
 
 .. _Release Notes_7.45.1_Prelude:
 
@@ -1560,7 +1564,7 @@ Security Notes
 .. _Release Notes_7.45.0:
 
 7.45.0 / 6.45.0
-======
+================
 
 .. _Release Notes_7.45.0_Prelude:
 
@@ -1788,7 +1792,7 @@ Bug Fixes
 .. _Release Notes_7.44.1:
 
 7.44.1 / 6.44.1
-======
+================
 
 .. _Release Notes_7.44.1_Prelude:
 
@@ -1820,7 +1824,7 @@ Bug Fixes
 .. _Release Notes_7.44.0:
 
 7.44.0 / 6.44.0
-======
+================
 
 .. _Release Notes_7.44.0_Prelude:
 
@@ -2018,7 +2022,7 @@ Other Notes
 .. _Release Notes_7.43.2:
 
 7.43.2 / 6.43.2
-======
+================
 
 .. _Release Notes_7.43.2_Prelude:
 
@@ -2039,7 +2043,7 @@ Enhancement Notes
 .. _Release Notes_7.43.1:
 
 7.43.1 / 6.43.1
-======
+================
 
 .. _Release Notes_7.43.1_Prelude:
 
@@ -2062,7 +2066,7 @@ Enhancement Notes
 .. _Release Notes_7.43.0:
 
 7.43.0 / 6.43.0
-======
+================
 
 .. _Release Notes_7.43.0_Prelude:
 
@@ -2099,9 +2103,7 @@ New Features
 
 - Add a new ``sbom`` core check to collect the software bill of materials of containers.
 
-- The Agent now leverages DMI (Desktop Management Interface) information on Unix to get the instance ID on Amazon EC2 when the metadata endpoint fails or
-is not accessible. The instance ID is exposed through DMI only on AWS Nitro instances.
-This will not change the hostname of the Agent upon upgrading, but will add it to the list of host aliases.
+- The Agent now leverages DMI (Desktop Management Interface) information on Unix to get the instance ID on Amazon EC2 when the metadata endpoint fails or is not accessible. The instance ID is exposed through DMI only on AWS Nitro instances. This will not change the hostname of the Agent upon upgrading, but will add it to the list of host aliases.
 
 - Adds the option to collect and store in workloadmeta the software bill of
   materials (SBOM) of containerd images using Trivy. This feature is disabled
@@ -2231,7 +2233,7 @@ Other Notes
 .. _Release Notes_7.42.0:
 
 7.42.0 / 6.42.0
-======
+================
 
 .. _Release Notes_7.42.0_Prelude:
 
@@ -2377,7 +2379,7 @@ Bug Fixes
 - Fix how Kubernetes events forwarding detects the Node/Host. 
   * Previously Nodes' events were not always attached to the correct host.
   * Pods' events from "custom" controllers might still be not attached to
-    a host if the controller doesn't set the host in the `source.host` event's field.
+  a host if the controller doesn't set the host in the `source.host` event's field.
 
 - APM: Fix SQL parsing of negative numbers and improve error message.
 
@@ -2410,7 +2412,7 @@ Other Notes
 .. _Release Notes_7.41.1:
 
 7.41.1 / 6.41.1
-======
+================
 
 .. _Release Notes_7.41.1_Prelude:
 
@@ -2425,7 +2427,7 @@ Release on: 2022-12-21
 .. _Release Notes_7.41.0:
 
 7.41.0 / 6.41.0
-======
+================
 
 .. _Release Notes_7.41.0_Prelude:
 
@@ -2601,7 +2603,7 @@ Bug Fixes
 .. _Release Notes_7.40.1:
 
 7.40.1
-======
+================
 
 .. _Release Notes_7.40.1_Prelude:
 
@@ -2632,7 +2634,7 @@ Bug Fixes
 .. _Release Notes_7.40.0:
 
 7.40.0 / 6.40.0
-======
+================
 
 .. _Release Notes_7.40.0_Prelude:
 
@@ -2641,7 +2643,7 @@ Prelude
 
 Release on: 2022-11-02
 
-- Please refer to the ``7.40.0 tag on integrations-core <https://github.com/DataDog/integrations-core/blob/master/AGENT_CHANGELOG.md#datadog-agent-version-7400>``_ for the list of changes on the Core Checks
+- Please refer to the `7.40.0 tag on integrations-core <https://github.com/DataDog/integrations-core/blob/master/AGENT_CHANGELOG.md#datadog-agent-version-7400>`_ for the list of changes on the Core Checks
 
 
 .. _Release Notes_7.40.0_Upgrade Notes:
@@ -2831,7 +2833,7 @@ Other Notes
 .. _Release Notes_7.39.1:
 
 7.39.1 / 6.39.1
-======
+================
 
 .. _Release Notes_7.39.1_Prelude:
 
@@ -2862,7 +2864,7 @@ Other Notes
 .. _Release Notes_7.39.0:
 
 7.39.0 / 6.39.0
-======
+================
 
 .. _Release Notes_7.39.0_Prelude:
 
@@ -3018,7 +3020,7 @@ Bug Fixes
 .. _Release Notes_7.38.2:
 
 7.38.2 / 6.38.2
-======
+================
 
 .. _Release Notes_7.38.2_Prelude:
 
@@ -3042,7 +3044,7 @@ Bug Fixes
 .. _Release Notes_7.38.1:
 
 7.38.1 / 6.38.1
-======
+================
 
 .. _Release Notes_7.38.1_Prelude:
 
@@ -3063,7 +3065,7 @@ Bug Fixes
 .. _Release Notes_7.38.0:
 
 7.38.0 / 6.38.0
-======
+================
 
 .. _Release Notes_7.38.0_Prelude:
 
@@ -3193,7 +3195,7 @@ Bug Fixes
 .. _Release Notes_7.37.1:
 
 7.37.1 / 6.37.1
-======
+================
 
 .. _Release Notes_7.37.1_Prelude:
 
@@ -3214,7 +3216,7 @@ Bug Fixes
 .. _Release Notes_7.37.0:
 
 7.37.0 / 6.37.0
-======
+================
 
 .. _Release Notes_7.37.0_Prelude:
 
@@ -3256,7 +3258,7 @@ New Features
 - Partial support of IPv6 on EKS clusters
   * Fix the kubelet client when the IP of the host is IPv6.
   * Fix the substitution of `%%host%%` patterns inside the auto-discovery annotations:
-    If the concerned pod has an IPv6 and the `%%host%%` pattern appears inside an URL context, then the IPv6 is surrounded by square brackets.
+  If the concerned pod has an IPv6 and the `%%host%%` pattern appears inside an URL context, then the IPv6 is surrounded by square brackets.
 
 - OTLP ingest now supports the same settings and protocol version as the OpenTelemetry Collector OTLP receiver v0.50.0.
 
@@ -3409,7 +3411,7 @@ Other Notes
 .. _Release Notes_7.36.1:
 
 7.36.1 / 6.36.1
-======
+================
 
 .. _Release Notes_7.36.1_Prelude:
 
@@ -3437,7 +3439,7 @@ Bug Fixes
 .. _Release Notes_7.36.0:
 
 7.36.0 / 6.36.0
-======
+================
 
 .. _Release Notes_7.36.0_Prelude:
 
@@ -3629,7 +3631,7 @@ Other Notes
 .. _Release Notes_7.35.2:
 
 7.35.2 / 6.35.2
-======
+================
 
 .. _Release Notes_7.35.2_Prelude:
 
@@ -3648,7 +3650,7 @@ Bug Fixes
 .. _Release Notes_7.35.1:
 
 7.35.1 / 6.35.1
-======
+================
 
 .. _Release Notes_7.35.1_Prelude:
 
@@ -3671,7 +3673,7 @@ Bug Fixes
 .. _Release Notes_7.35.0:
 
 7.35.0 / 6.35.0
-======
+================
 
 .. _Release Notes_7.35.0_Prelude:
 
@@ -3999,7 +4001,7 @@ Other Notes
 .. _Release Notes_7.34.0:
 
 7.34.0 / 6.34.0
-======
+================
 
 .. _Release Notes_7.34.0_Prelude:
 
@@ -4195,7 +4197,7 @@ Bug Fixes
 .. _Release Notes_7.33.1:
 
 7.33.1 / 6.33.1
-======
+================
 
 .. _Release Notes_7.33.1_Prelude:
 
@@ -4218,7 +4220,7 @@ Bug Fixes
 .. _Release Notes_7.33.0:
 
 7.33.0 / 6.33.0
-======
+================
 
 .. _Release Notes_7.33.0_Prelude:
 
@@ -4437,7 +4439,7 @@ Other Notes
 .. _Release Notes_7.32.4:
 
 7.32.4 / 6.32.4
-======
+================
 
 .. _Release Notes_7.32.4_Prelude:
 
@@ -4452,7 +4454,7 @@ Release on: 2021-12-22
 .. _Release Notes_7.32.3:
 
 7.32.3 / 6.32.3
-======
+================
 
 .. _Release Notes_7.32.3_Prelude:
 
@@ -4468,7 +4470,7 @@ Release on: 2021-12-15
 .. _Release Notes_7.32.2:
 
 7.32.2 / 6.32.2
-======
+================
 
 .. _Release Notes_7.32.2_Prelude:
 
@@ -4489,7 +4491,7 @@ Security Notes
 .. _Release Notes_7.32.1:
 
 7.32.1 / 6.32.1
-======
+================
 
 .. _Release Notes_7.32.1_Prelude:
 
@@ -4517,7 +4519,7 @@ Bug Fixes
 .. _Release Notes_7.32.0:
 
 7.32.0 / 6.32.0
-======
+================
 
 .. _Release Notes_7.32.0_Prelude:
 
@@ -4588,7 +4590,7 @@ New Features
 
 - Added new executable `readsecret_multiple_providers.sh` that allows the
   agent to read secrets both from files and Kubernetes secrets. Please refer
-  to the `docs <https://docs.datadoghq.com/agent/guide/secrets-management>`_
+  to the `docs <https://docs.datadoghq.com/agent/guide/secrets-management>`__
   for more details.
 
 
@@ -4692,7 +4694,7 @@ Bug Fixes
 .. _Release Notes_7.31.1:
 
 7.31.1
-======
+================
 
 .. _Release Notes_7.31.1_Prelude:
 
@@ -4711,7 +4713,7 @@ Bug Fixes
 .. _Release Notes_7.31.0:
 
 7.31.0 / 6.31.0
-======
+================
 
 .. _Release Notes_7.31.0_Prelude:
 
@@ -4900,7 +4902,7 @@ Other Notes
 .. _Release Notes_7.30.2:
 
 7.30.2
-======
+================
 
 .. _Release Notes_7.30.2_Prelude:
 
@@ -4922,7 +4924,7 @@ Bug Fixes
 .. _Release Notes_7.30.1:
 
 7.30.1
-======
+================
 
 .. _Release Notes_7.30.1_Prelude:
 
@@ -4937,7 +4939,7 @@ Release on: 2021-08-20
 .. _Release Notes_7.30.0:
 
 7.30.0 / 6.30.0
-======
+================
 
 .. _Release Notes_7.30.0_Prelude:
 
@@ -5105,7 +5107,7 @@ Other Notes
 .. _Release Notes_7.29.1:
 
 7.29.1
-======
+================
 
 .. _Release Notes_7.29.1_Prelude:
 
@@ -5136,7 +5138,7 @@ Bug Fixes
 .. _Release Notes_7.29.0:
 
 7.29.0 / 6.29.0
-======
+================
 
 .. _Release Notes_7.29.0_Prelude:
 
@@ -5234,7 +5236,7 @@ Enhancement Notes
   * ``cronjob.count``
   * ``endpoint.count``
   * ``hpa.count``
-  * ``vpa.count`
+  * ``vpa.count``
 
 - Add system.cpu.interrupt on linux.
 
@@ -5326,7 +5328,7 @@ Other Notes
 .. _Release Notes_7.28.1:
 
 7.28.1
-======
+================
 
 .. _Release Notes_7.28.1_Prelude:
 
@@ -5341,7 +5343,7 @@ Release on: 2021-05-31
 .. _Release Notes_7.28.0:
 
 7.28.0 / 6.28.0
-======
+================
 
 .. _Release Notes_7.28.0_Prelude:
 
@@ -5516,7 +5518,7 @@ Other Notes
 .. _Release Notes_7.27.1:
 
 7.27.1 / 6.27.1
-======
+================
 
 .. _Release Notes_7.27.1_Prelude:
 
@@ -5539,7 +5541,7 @@ Bug Fixes
 .. _Release Notes_7.27.0:
 
 7.27.0 / 6.27.0
-======
+================
 
 .. _Release Notes_7.27.0_Prelude:
 
@@ -5810,7 +5812,7 @@ Other Notes
 .. _Release Notes_7.26.0:
 
 7.26.0 / 6.26.0
-======
+================
 
 .. _Release Notes_7.26.0_Prelude:
 
@@ -5981,7 +5983,7 @@ Other Notes
 .. _Release Notes_7.25.1:
 
 7.25.1
-======
+================
 
 .. _Release Notes_7.25.1_Prelude:
 
@@ -6011,14 +6013,14 @@ Bug Fixes
   length of 16 and a maximum length of 20 (from 12-18).  Improves compatibility
   with environments that have longer password requirements.
 
-=============
+=================================
 Release Notes
-=============
+=================================
 
 .. _Release Notes_7.25.0:
 
 7.25.0 / 6.25.0
-======
+================
 
 .. _Release Notes_7.25.0_Prelude:
 
@@ -6183,13 +6185,13 @@ Other Notes
 - The Agent, Logs Agent and the system-probe are now compiled with Go ``1.14.12``
 
 - Upgrade embedded ``libkrb5`` Kerberos library to v1.18.3. This version drops support for
-  the encryption types marked as "weak" in the `docs of the library <https://web.mit.edu/kerberos/krb5-1.17/doc/admin/conf_files/kdc_conf.html#encryption-types>`_
+  the encryption types marked as "weak" in the `docs of the library <https://web.mit.edu/kerberos/krb5-1.17/doc/admin/conf_files/kdc_conf.html#encryption-types>`__
 
 
 .. _Release Notes_7.24.1:
 
 7.24.1
-======
+================
 
 .. _Release Notes_7.24.1_Bug Fixes:
 
@@ -6223,7 +6225,7 @@ Other Notes
 .. _Release Notes_7.24.0:
 
 7.24.0 / 6.24.0
-======
+================
 
 .. _Release Notes_7.24.0_Prelude:
 
@@ -6368,7 +6370,7 @@ Other Notes
 .. _Release Notes_7.23.1:
 
 7.23.1 / 6.23.1
-======
+================
 
 .. _Release Notes_7.23.1_Prelude:
 
@@ -6396,7 +6398,7 @@ Bug Fixes
 .. _Release Notes_7.23.0:
 
 7.23.0 / 6.23.0
-======
+================
 
 .. _Release Notes_7.23.0_Prelude:
 
@@ -6592,7 +6594,7 @@ Other Notes
 .. _Release Notes_7.22.1:
 
 7.22.1 / 6.22.1
-======
+================
 
 .. _Release Notes_7.22.1_Prelude:
 
@@ -6618,7 +6620,7 @@ Bug Fixes
 .. _Release Notes_7.22.0:
 
 7.22.0 / 6.22.0
-======
+================
 
 .. _Release Notes_7.22.0_Prelude:
 
@@ -6649,7 +6651,7 @@ New Features
 - Add support for receiving and processing SNMP traps, and forwarding them as logs to Datadog.
 
 - APM: A new trace ingestion endpoint was introduced at /v0.5/traces which supports a more compact payload format, greatly
-  improving resource usage. The spec for the new wire format can be viewed `here <https://github.com/DataDog/datadog-agent/blob/7.22.0/pkg/trace/api/version.go#L21-L69>`_.
+  improving resource usage. The spec for the new wire format can be viewed `here <https://github.com/DataDog/datadog-agent/blob/7.22.0/pkg/trace/api/version.go#L21-L69>`__.
   Tracers supporting this change will automatically use the new endpoint.
 
 .. _Release Notes_7.22.0_Enhancement Notes:
@@ -6768,7 +6770,7 @@ Other Notes
 .. _Release Notes_7.21.1:
 
 7.21.1
-======
+================
 
 .. _Release Notes_7.21.1_Prelude:
 
@@ -6788,7 +6790,7 @@ Bug Fixes
 .. _Release Notes_7.21.0:
 
 7.21.0 / 6.21.0
-======
+================
 
 .. _Release Notes_7.21.0_Prelude:
 
@@ -6987,7 +6989,7 @@ Other Notes
 .. _Release Notes_7.20.2:
 
 7.20.2
-======
+================
 
 .. _Release Notes_7.20.2_Prelude:
 
@@ -7002,7 +7004,7 @@ Release on: 2020-06-17
 .. _Release Notes_7.20.1:
 
 7.20.1
-======
+================
 
 .. _Release Notes_7.20.1_Prelude:
 
@@ -7017,7 +7019,7 @@ Release on: 2020-06-11
 .. _Release Notes_7.20.0:
 
 7.20.0 / 6.20.0
-======
+================
 
 .. _Release Notes_7.20.0_Prelude:
 
@@ -7191,7 +7193,7 @@ Other Notes
 .. _Release Notes_7.19.2:
 
 7.19.2 / 6.19.2
-======
+================
 
 .. _Release Notes_7.19.2_Prelude:
 
@@ -7206,7 +7208,7 @@ Release on: 2020-05-12
 .. _Release Notes_7.19.1:
 
 7.19.1
-======
+================
 
 .. _Release Notes_7.19.1_Prelude:
 
@@ -7228,7 +7230,7 @@ Bug Fixes
 .. _Release Notes_7.19.0:
 
 7.19.0 / 6.19.0
-======
+================
 
 .. _Release Notes_7.19.0_Prelude:
 
@@ -7248,6 +7250,7 @@ Upgrade Notes
 - Default logs-agent to use HTTPS with compression when possible.
   Starting from this version, the default transport is HTTPS with compression instead of TCP.
   The usage of TCP is kept in the following cases:
+
     * logs_config.use_tcp is set to true
     * logs_config.socks5_proxy_address is set, because socks5 proxies are not yet supported in HTTPS with compression
     * HTTPS connectivity test has failed: at agent startup, an HTTPS test request is sent to determine if HTTPS can be used
@@ -7404,7 +7407,7 @@ Other Notes
 .. _Release Notes_7.18.1:
 
 7.18.1
-======
+================
 
 .. _Release Notes_7.18.1_Bug Fixes:
 
@@ -7420,7 +7423,7 @@ Bug Fixes
 .. _Release Notes_7.18.0:
 
 7.18.0 / 6.18.0
-======
+================
 
 .. _Release Notes_7.18.0_Prelude:
 
@@ -7609,7 +7612,7 @@ Other Notes
 .. _Release Notes_7.17.2:
 
 7.17.2
-======
+================
 
 .. _Release Notes_7.17.2_Prelude:
 
@@ -7632,7 +7635,7 @@ Bug Fixes
 .. _Release Notes_7.17.1:
 
 7.17.1 / 6.17.1
-======
+================
 
 .. _Release Notes_7.17.1_Prelude:
 
@@ -7659,7 +7662,7 @@ Bug Fixes
 .. _Release Notes_7.17.0:
 
 7.17.0 / 6.17.0
-======
+================
 
 .. _Release Notes_7.17.0_Prelude:
 
@@ -7787,7 +7790,7 @@ Other Notes
 .. _Release Notes_7.16.1:
 
 7.16.1 / 6.16.1
-========
+==================
 
 .. _Release Notes_7.16.1_Prelude:
 
@@ -7811,7 +7814,7 @@ Security Issues
 .. _Release Notes_7.16.0:
 
 7.16.0 / 6.16.0
-======
+================
 
 .. _Release Notes_7.16.0_Prelude:
 
@@ -7909,7 +7912,7 @@ Other Notes
 .. _Release Notes_6.15.1:
 
 6.15.1
-======
+================
 
 .. _Release Notes_6.15.1_Prelude:
 
@@ -7951,7 +7954,7 @@ Other Notes
 
 
 6.15.0
-======
+================
 
 .. _Release Notes_6.15.0_Prelude:
 
@@ -7994,7 +7997,7 @@ New Features
 
 - Adding support for compression when forwarding logs through HTTPS. Enable it
   by following instructions
-  `here <https://docs.datadoghq.com/agent/logs/?tab=httpcompressed#send-logs-over-https>`_
+  `here <https://docs.datadoghq.com/agent/logs/?tab=httpcompressed#send-logs-over-https>`__
 
 .. _Release Notes_6.15.0_Enhancement Notes:
 
@@ -8113,7 +8116,7 @@ Other Notes
 .. _Release Notes_6.14.3:
 
 6.14.3
-======
+================
 
 .. _Release Notes_6.14.3_Prelude:
 
@@ -8136,7 +8139,7 @@ Bug Fixes
 .. _Release Notes_6.14.2:
 
 6.14.2
-======
+================
 
 .. _Release Notes_6.14.2_Prelude:
 
@@ -8160,7 +8163,7 @@ Bug Fixes
 .. _Release Notes_6.14.1:
 
 6.14.1
-======
+================
 
 .. _Release Notes_6.14.1_Prelude:
 
@@ -8182,7 +8185,7 @@ Bug Fixes
 .. _Release Notes_6.14.0:
 
 6.14.0
-======
+================
 
 .. _Release Notes_6.14.0_Prelude:
 
@@ -8201,7 +8204,7 @@ Upgrade Notes
 
 - The GPG key used to sign the Agent RPM packages has been rotated.
   See the dedicated `Agent documentation page
-  <https://docs.datadoghq.com/agent/faq/rpm-gpg-key-rotation-agent-6/>`_
+  <https://docs.datadoghq.com/agent/faq/rpm-gpg-key-rotation-agent-6/>`__
   to know how to make sure that the new Agent RPM packages can be installed on
   hosts.
 
@@ -8240,7 +8243,7 @@ New Features
 
 - The Agent now includes a Python 3 runtime to run checks.
   By default, the Python 2 runtime is used. See the dedicated `Agent documentation page
-  <https://docs.datadoghq.com/agent/guide/python-3/>`_ for details on how to
+  <https://docs.datadoghq.com/agent/guide/python-3/>`__ for details on how to
   configure the Agent to use the Python 3 runtime and how to migrate checks from
   Python 2 to Python 3.
 
@@ -8394,7 +8397,7 @@ Other Notes
 .. _Release Notes_6.13.0:
 
 6.13.0
-======
+================
 
 .. _Release Notes_6.13.0_Prelude:
 
@@ -8519,7 +8522,7 @@ Bug Fixes
 
 - Fix the `tagger` behavior returning `None` when no tags are present for the `kubelet` and `fargate` integration.
 
-- APM: metrics generated by the processing function (such as *.traces_priority) now
+- APM: metrics generated by the processing function (such as ``*.traces_priority``) now
   contain language specific tags.
 
 - APM: Memory spikes when retry queue grows have been fixed.
@@ -8561,7 +8564,7 @@ Other Notes
 
 
 6.12.2
-======
+================
 
 Prelude
 -------
@@ -8573,7 +8576,7 @@ This release is only available on Windows and contains all the changes introduce
 - Please refer to the `6.12.2 tag on integrations-core <https://github.com/DataDog/integrations-core/blob/master/AGENT_CHANGELOG.md#datadog-agent-version-6122>`_ for the list of changes on the Core Checks
 
 6.12.1
-======
+================
 
 Prelude
 -------
@@ -8590,10 +8593,10 @@ Bug Fixes
 - Fixed a bug in the kubelet and fargate integrations preventing the collection of the ``kubernetes.cpu.*`` and ``kubernetes.memory.*`` metrics.
 
 6.12.0
-======
+================
 
 Known Issues
--------
+------------
 
 Some metrics from the kubelet and fargate integrations (``kubernetes.cpu.*`` and ``kubernetes.memory.*``) are missing for certain configurations.
 A fix will be released in v6.12.1. Meanwhile if downgrading to 6.11.3 is not an option we recommend using the runtime metrics
@@ -8615,7 +8618,7 @@ Upgrade Notes
 - APM: Log throttling is now automatically enabled by default when
   `log_level` differs from `debug`. A maximum of no more than 10 error
   messages every 10 seconds will be displayed. If you had it enabled before,
-    it can now be removed from the config file.
+  it can now be removed from the config file.
 
 - On Windows, the path of the embedded ``python.exe`` binary has changed from
   ``%ProgramFiles%\Datadog\Datadog Agent\embedded\python.exe`` to ``%ProgramFiles%\Datadog\Datadog Agent\embedded2\python.exe``.
@@ -8784,7 +8787,7 @@ Other Notes
 .. _Release Notes_6.11.3:
 
 6.11.3
-======
+================
 
 .. _Release Notes_6.11.3_Prelude:
 
@@ -8814,7 +8817,7 @@ Bug Fixes
 .. _Release Notes_6.11.2:
 
 6.11.2
-======
+================
 
 .. _Release Notes_6.11.2_Prelude:
 
@@ -8842,7 +8845,7 @@ Bug Fixes
 .. _Release Notes_6.11.1:
 
 6.11.1
-======
+================
 
 **Important**: ``6.11.1`` is not marked as latest for Windows: we are
 investigating some cases where ``6.11.0`` and ``6.11.1`` are not installing correctly
@@ -8880,7 +8883,7 @@ Bug Fixes
 .. _Release Notes_6.11.0:
 
 6.11.0
-======
+================
 
 .. _Release Notes_6.11.0_Prelude:
 
@@ -8968,7 +8971,7 @@ Enhancement Notes
 - On Windows, allows Agent to be installed to nonstandard directories.
   Uses APPLICATIONDATADIRECTORY to set the root of the configuration file tree,
   and PROJECTLOCATION to set the root of the binary tree. Please refer to
-  the `docs <https://docs.datadoghq.com/agent/basic_agent_usage/windows>`_
+  the `docs <https://docs.datadoghq.com/agent/basic_agent_usage/windows>`__
   for more details
 
 - In order to decrease the number of API DCA requests,
@@ -9081,7 +9084,7 @@ Other Notes
 
 
 6.10.2
-======
+================
 
 Prelude
 -------
@@ -9098,7 +9101,7 @@ Bug Fixes
 .. _Release Notes_6.10.1:
 
 6.10.1
-======
+================
 
 .. _Release Notes_6.10.1_Prelude:
 
@@ -9122,7 +9125,7 @@ Bug Fixes
 .. _Release Notes_6.10.0:
 
 6.10.0
-======
+================
 
 .. _Release Notes_6.10.0_Prelude:
 
@@ -9536,7 +9539,7 @@ Upgrade Notes
 
 - The agent now requires a cluster agent version 1.0+ to establish
   a valid connection
-- JMX garbage collection metrics ``jvm.gc.cms.count`` and ``jvm.gc.parnew.time`` were renamed to ``jvm.gc.minor_collection_count``, ``jvm.gc.major_collection_count``, ``jvm.gc.minor_collection_time``, ``jvm.gc.major_collection_time`` in 6.6 to be more meaningful. To ensure backward compatibility the change was reverted in this release and the new names put behind a config option. If you started relying on these new names please enable the ``new_gc_metrics`` option in your jmx configurations. An example can be found `here <https://github.com/DataDog/datadog-agent/blob/1aee233a18dedbb8af86da0ce1f2e305206aacf8/cmd/agent/dist/conf.d/jmx.d/conf.yaml.example#L8-L13>`_. This flag will be enabled by default in a future major release.
+- JMX garbage collection metrics ``jvm.gc.cms.count`` and ``jvm.gc.parnew.time`` were renamed to ``jvm.gc.minor_collection_count``, ``jvm.gc.major_collection_count``, ``jvm.gc.minor_collection_time``, ``jvm.gc.major_collection_time`` in 6.6 to be more meaningful. To ensure backward compatibility the change was reverted in this release and the new names put behind a config option. If you started relying on these new names please enable the ``new_gc_metrics`` option in your jmx configurations. An example can be found `here <https://github.com/DataDog/datadog-agent/blob/1aee233a18dedbb8af86da0ce1f2e305206aacf8/cmd/agent/dist/conf.d/jmx.d/conf.yaml.example#L8-L13>`__. This flag will be enabled by default in a future major release.
 
 New Features
 ------------
@@ -10852,7 +10855,7 @@ Bug Fixes
 
 
 6.1.2
-==========
+====================
 2018-04-05
 
 Bug Fixes
@@ -10862,7 +10865,7 @@ Bug Fixes
 
 
 6.1.1
-==========
+====================
 2018-03-29
 
 Bug Fixes
@@ -11062,7 +11065,7 @@ Bug Fixes
 
 
 6.0.0-rc.4
-==========
+====================
 2018-02-23
 
 Enhancements
@@ -11124,7 +11127,7 @@ Other Notes
 
 
 6.0.0-rc.3
-==========
+====================
 2018-02-22
 
 Enhancements
@@ -11178,7 +11181,7 @@ Other Notes
 
 
 6.0.0-rc.2
-==========
+====================
 2018-02-20
 
 New Features
@@ -11252,7 +11255,7 @@ Other Notes
 
 
 6.0.0-rc.1
-==========
+====================
 2018-02-16
 
 Prelude
@@ -11348,10 +11351,10 @@ New Features
 
 - Add more details to the information displayed by the logs agent status.
 
-- Log lines starting with the special character `<` were considered rfc5424
+- Log lines starting with the special character `` < `` were considered rfc5424
   formatted, and any further formatting was skipped. This commit updates the
-  detection rule to match logs starting with `<pri>version `, to reduce
-  false positives
+  detection rule to match logs starting with `` <pri>version `` , to reduce
+  false positives.
 
 - Support tagging on Nomad 0.6.0+ clusters
 
@@ -11462,7 +11465,7 @@ Other Notes
 
 
 6.0.0-beta.9
-============
+================================
 2018-01-26
 
 Prelude
@@ -11565,7 +11568,7 @@ Other Notes
 
 
 6.0.0-beta.8
-============
+================================
 2018-01-11
 
 New Features
