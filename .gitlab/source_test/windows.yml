@@ -33,11 +33,11 @@
     - If ($lastExitCode -ne "0") { throw "Previous command returned $lastExitCode" }
   after_script:
     # Install the ci-visbility standalone CLI and upload junits
-    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-    - set +x
-    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
-    - set -x
-    - for f in junit-*.tgz; do inv -e junit-upload --tgz-path $f; done
+    - Invoke-WebRequest -Uri "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_win-x64.exe" -OutFile "datadog-ci.exe"
+    - $DebugPreference = 'SilentlyContinue'
+    - $env:DATADOG_API_KEY = (aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - $DebugPreference = 'Continue'
+    - Get-ChildItem -Filter 'junit-*.tgz' | ForEach-Object { inv -e junit-upload --tgz-path $_.FullName }
   variables:
     TEST_OUTPUT_FILE: test_output.json
   artifacts:
