@@ -25,6 +25,7 @@ include:
   - /.gitlab/integration_test/include.yml
   - /.gitlab/internal_image_deploy/internal_image_deploy.yml
   - /.gitlab/internal_kubernetes_deploy/include.yml
+  - /.gitlab/junit_upload/junit_upload.yml
   - /.gitlab/kitchen_cleanup/include.yml
   - /.gitlab/kitchen_deploy/kitchen_deploy.yml
   - /.gitlab/kitchen_testing/include.yml
@@ -87,6 +88,7 @@ stages:
   - functional_test
   - functional_test_sysprobe
   - functional_test_cleanup
+  - junit_upload
   - internal_kubernetes_deploy
   - post_rc_build
   - check_merge

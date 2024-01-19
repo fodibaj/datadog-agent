@@ -1,0 +1,37 @@
+---
+unit_tests_arm64_junit_upload:
+  stage: junit_upload
+  rules:
+    - !reference [.except_mergequeue]
+    - when: always
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/deb_x64$DATADOG_AGENT_BUILDIMAGES_SUFFIX:$DATADOG_AGENT_BUILDIMAGES
+  tags: ["arch:amd64"]
+  needs: [tests_deb-arm64-py3, tests_rpm-arm64-py3]
+  script:
+    - source /root/.bashrc
+    # Install the ci-visbility standalone CLI and upload junits
+    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+    - set +x
+    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - set -x
+    - for f in junit-*.tgz; do inv -e junit-upload --tgz-path $f; done
+
+system_probe_arm64_junit_upload:
+  stage: junit_upload
+  rules:
+    - !reference [.except_mergequeue]
+    - when: always
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-buildimages/deb_x64$DATADOG_AGENT_BUILDIMAGES_SUFFIX:$DATADOG_AGENT_BUILDIMAGES
+  tags: ["arch:amd64"]
+  allow_failure: true
+  needs:
+   - job: kernel_matrix_testing_run_tests_arm64
+     optional: true
+  script:
+    - source /root/.bashrc
+    # Install the ci-visbility standalone CLI and upload junits
+    - curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+    - set +x
+    - export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.datadog_api_key_org2 --with-decryption --query "Parameter.Value" --out text)
+    - set -x
+    - ss=0; for f in $DD_AGENT_TESTING_DIR/kitchen-junit-*.tar.gz; do [[ -e "$f" ]] || continue; inv -e junit-upload --tgz-path $f || ((ss++)); done; exit $ss
