@@ -5,7 +5,7 @@ Release Notes
 .. _Release Notes_7.50.3:
 
 7.50.3 / 6.50.3
-======
+===============
 
 .. _Release Notes_7.50.3_Prelude:
 
