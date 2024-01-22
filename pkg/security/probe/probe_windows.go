@@ -178,8 +178,7 @@ func (p *WindowsProbe) setupEtw() error {
 
 	log.Info("Starting tracing...")
 	err := p.fimSession.StartTracing(func(e *etw.DDEventRecord) {
-		log.Infof("Received event %d for PID %d", e.EventHeader.EventDescriptor.ID, e.EventHeader.ProcessID)
-		log.Debugf("Event content::etw.EventHeader  %v", e.EventHeader)
+		// log.Infof("Received event %d for PID %d", e.EventHeader.EventDescriptor.ID, e.EventHeader.ProcessID)
 		switch e.EventHeader.ProviderID {
 		case etw.DDGUID(p.fileguid):
 			switch e.EventHeader.EventDescriptor.ID {
