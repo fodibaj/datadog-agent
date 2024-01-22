@@ -15,6 +15,7 @@ import (
 
 	ddebpf "github.com/DataDog/datadog-agent/pkg/ebpf"
 	"github.com/DataDog/datadog-agent/pkg/network/protocols/telemetry"
+	"github.com/DataDog/datadog-agent/pkg/util/kernel"
 	"github.com/DataDog/datadog-agent/pkg/util/log"
 	manager "github.com/DataDog/ebpf-manager"
 )
@@ -33,7 +34,7 @@ type Consumer[V any] struct {
 	proto       string
 	syncRequest chan (chan struct{})
 	offsets     *offsetManager
-	handler     *ddebpf.PerfHandler
+	handler     ddebpf.EventHandler
 	batchReader *batchReader
 	callback    func([]V)
 
@@ -60,13 +61,12 @@ func NewConsumer[V any](proto string, ebpf *manager.Manager, callback func([]V))
 		return nil, fmt.Errorf("unable to find map %s", batchMapName)
 	}
 
-	eventsMapName := proto + eventsMapSuffix
-	eventsMap, found, _ := ebpf.GetMap(eventsMapName)
-	if !found {
-		return nil, fmt.Errorf("unable to find map %s", eventsMapName)
+	numCPUs, err := kernel.PossibleCPUs()
+	if err != nil {
+		numCPUs = 96
+		log.Error("unable to detect number of CPUs. assuming 96 cores")
 	}
 
-	numCPUs := int(eventsMap.MaxEntries())
 	offsets := newOffsetManager(numCPUs)
 	batchReader, err := newBatchReader(offsets, batchMap, numCPUs)
 	if err != nil {
@@ -124,9 +124,11 @@ func (c *Consumer[V]) Start() {
 	c.eventLoopWG.Add(1)
 	go func() {
 		defer c.eventLoopWG.Done()
+		dataChannel := c.handler.DataChannel()
+		lostChannel := c.handler.LostChannel()
 		for {
 			select {
-			case dataEvent, ok := <-c.handler.DataChannel:
+			case dataEvent, ok := <-dataChannel:
 				if !ok {
 					return
 				}
@@ -141,9 +143,9 @@ func (c *Consumer[V]) Start() {
 
 				c.failedFlushesCount.Add(int64(b.Failed_flushes))
 				c.kernelDropsCount.Add(int64(b.Dropped_events))
-				c.process(dataEvent.CPU, b, false)
+				c.process(b, false)
 				dataEvent.Done()
-			case _, ok := <-c.handler.LostChannel:
+			case _, ok := <-lostChannel:
 				if !ok {
 					return
 				}
@@ -156,7 +158,7 @@ func (c *Consumer[V]) Start() {
 				}
 
 				c.batchReader.ReadAll(func(cpu int, b *batch) {
-					c.process(cpu, b, true)
+					c.process(b, true)
 				})
 				log.Infof("usm events summary: name=%q %s", c.proto, c.metricGroup.Summary())
 				close(done)
@@ -198,7 +200,9 @@ func (c *Consumer[V]) Stop() {
 	close(c.syncRequest)
 }
 
-func (c *Consumer[V]) process(cpu int, b *batch, syncing bool) {
+func (c *Consumer[V]) process(b *batch, syncing bool) {
+	cpu := int(b.Cpu)
+
 	// Determine the subset of data we're interested in as we might have read
 	// part of this batch before during a Sync() call
 	begin, end := c.offsets.Get(cpu, b, syncing)
