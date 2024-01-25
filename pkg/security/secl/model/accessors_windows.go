@@ -92,15 +92,6 @@ func (m *Model) GetEvaluator(field eval.Field, regID eval.RegisterID) (eval.Eval
 			Field:  field,
 			Weight: eval.HandlerWeight,
 		}, nil
-	case "create_file.filename":
-		return &eval.StringEvaluator{
-			EvalFnc: func(ctx *eval.Context) string {
-				ev := ctx.Event.(*Event)
-				return ev.CreateNewFile.FileName
-			},
-			Field:  field,
-			Weight: eval.FunctionWeight,
-		}, nil
 	case "event.timestamp":
 		return &eval.IntEvaluator{
 			EvalFnc: func(ctx *eval.Context) int {
@@ -791,7 +782,6 @@ func (ev *Event) GetFields() []eval.Field {
 		"create_file.file.name.length",
 		"create_file.file.path",
 		"create_file.file.path.length",
-		"create_file.filename",
 		"event.timestamp",
 		"exec.cmdline",
 		"exec.container.id",
@@ -868,8 +858,6 @@ func (ev *Event) GetFieldValue(field eval.Field) (interface{}, error) {
 		return ev.FieldHandlers.ResolveFilePath(ev, &ev.CreateNewFile.File), nil
 	case "create_file.file.path.length":
 		return ev.FieldHandlers.ResolveFilePath(ev, &ev.CreateNewFile.File), nil
-	case "create_file.filename":
-		return ev.CreateNewFile.FileName, nil
 	case "event.timestamp":
 		return int(ev.FieldHandlers.ResolveEventTimestamp(ev, &ev.BaseEvent)), nil
 	case "exec.cmdline":
@@ -1142,8 +1130,6 @@ func (ev *Event) GetFieldEventType(field eval.Field) (eval.EventType, error) {
 		return "create_file", nil
 	case "create_file.file.path.length":
 		return "create_file", nil
-	case "create_file.filename":
-		return "create_file", nil
 	case "event.timestamp":
 		return "*", nil
 	case "exec.cmdline":
@@ -1279,8 +1265,6 @@ func (ev *Event) GetFieldType(field eval.Field) (reflect.Kind, error) {
 		return reflect.String, nil
 	case "create_file.file.path.length":
 		return reflect.Int, nil
-	case "create_file.filename":
-		return reflect.String, nil
 	case "event.timestamp":
 		return reflect.Int, nil
 	case "exec.cmdline":
@@ -1453,13 +1437,6 @@ func (ev *Event) SetFieldValue(field eval.Field, value interface{}) error {
 		return nil
 	case "create_file.file.path.length":
 		return &eval.ErrFieldReadOnly{Field: "create_file.file.path.length"}
-	case "create_file.filename":
-		rv, ok := value.(string)
-		if !ok {
-			return &eval.ErrValueTypeMismatch{Field: "CreateNewFile.FileName"}
-		}
-		ev.CreateNewFile.FileName = rv
-		return nil
 	case "event.timestamp":
 		rv, ok := value.(int)
 		if !ok {

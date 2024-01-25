@@ -69,14 +69,6 @@ func (ev *Event) GetCreateFileFilePathLength() int {
 	return len(ev.FieldHandlers.ResolveFilePath(ev, &ev.CreateNewFile.File))
 }
 
-// GetCreateFileFilename returns the value of the field, resolving if necessary
-func (ev *Event) GetCreateFileFilename() string {
-	if ev.GetEventType().String() != "create_file" {
-		return ""
-	}
-	return ev.CreateNewFile.FileName
-}
-
 // GetEventTimestamp returns the value of the field, resolving if necessary
 func (ev *Event) GetEventTimestamp() int {
 	return ev.FieldHandlers.ResolveEventTimestamp(ev, &ev.BaseEvent)
