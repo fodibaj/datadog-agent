@@ -55,6 +55,9 @@ func (ev *Event) resolveFields(forADs bool) {
 	}
 	// resolve event specific fields
 	switch ev.GetEventType().String() {
+	case "create_file":
+		_ = ev.FieldHandlers.ResolveFilePath(ev, &ev.CreateNewFile.File)
+		_ = ev.FieldHandlers.ResolveFileBasename(ev, &ev.CreateNewFile.File)
 	case "exec":
 		_ = ev.FieldHandlers.ResolveFilePath(ev, &ev.Exec.Process.FileEvent)
 		_ = ev.FieldHandlers.ResolveFileBasename(ev, &ev.Exec.Process.FileEvent)
