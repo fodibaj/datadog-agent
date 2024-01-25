@@ -279,7 +279,7 @@ func (p *WindowsProbe) Start() error {
 								File: model.FileEvent{
 									PathnameStr: ca.FileName,
 									BasenameStr: ca.fileName,
-								} 
+								},
 							}
 
 						}
