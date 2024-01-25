@@ -282,7 +282,7 @@ func (p *WindowsProbe) Start() error {
 					case idCreateNewFile:
 						if ca, err := parseCreateArgs(e); err == nil {
 							log.Infof("Got create/create new file on file %s", ca.string())
-							
+
 							ev.Type = uint32(model.CreateNewFileEventType)
 							ev.CreateNewFile = model.CreateNewFileEvent{
 								File: model.FileEvent{
@@ -290,7 +290,7 @@ func (p *WindowsProbe) Start() error {
 									BasenameStr: ca.fileName,
 								},
 							}
-							log.Infof("event -----------:" ev)
+							log.Infof("event -----------:", ev)
 						}
 					case idCleanup:
 						fallthrough
