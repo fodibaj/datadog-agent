@@ -268,8 +268,8 @@ func (p *WindowsProbe) Start() error {
 				ev.Exit.Process = &pce.Process
 			case e := <-p.onFimEvent:
 				pce = p.Resolvers.ProcessResolver.GetEntry(e.EventHeader.ProcessID)
-				if err != nil {
-					log.Errorf("error in resolver---------------------- %v", err)
+				if pce == nil {
+					log.Errorf("unable to resolve pid------------------ %d", e.EventHeader.ProcessID)
 					continue
 				}
 				switch e.EventHeader.ProviderID {
@@ -357,6 +357,7 @@ func (p *WindowsProbe) Start() error {
 			}
 
 			if pce == nil {
+				log.Infof("pce is nil ------------------")
 				continue
 			}
 
