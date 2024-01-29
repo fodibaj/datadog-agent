@@ -18,6 +18,7 @@ import (
 	"github.com/DataDog/datadog-agent/comp/process"
 	apiutil "github.com/DataDog/datadog-agent/pkg/api/util"
 	ddconfig "github.com/DataDog/datadog-agent/pkg/config"
+	"github.com/DataDog/datadog-agent/pkg/config/fetcher"
 	"github.com/DataDog/datadog-agent/pkg/config/settings"
 	settingshttp "github.com/DataDog/datadog-agent/pkg/config/settings/http"
 	"github.com/DataDog/datadog-agent/pkg/util/fxutil"
@@ -94,18 +95,12 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 }
 
 func showRuntimeConfiguration(deps dependencies) error {
-	c, err := getClient(deps.Config)
-	if err != nil {
-		return err
-	}
-
-	runtimeConfig, err := c.FullConfig()
+	runtimeConfig, err := fetcher.ProcessAgentConfig(deps.Config)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println(runtimeConfig)
-
 	return nil
 }
 
