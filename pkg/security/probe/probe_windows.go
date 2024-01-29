@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/DataDog/datadog-agent/comp/etw"
 	etwimpl "github.com/DataDog/datadog-agent/comp/etw/impl"
@@ -51,7 +50,6 @@ type WindowsProbe struct {
 	pm            *procmon.WinProcmon
 	onStart       chan *procmon.ProcessStartNotification
 	onStop        chan *procmon.ProcessStopNotification
-	onFimEvent    chan *etw.DDEventRecord
 	onError       chan bool
 
 	// ETW component for FIM
@@ -179,8 +177,95 @@ func (p *WindowsProbe) setupEtw() error {
 
 	log.Info("Starting tracing...")
 	err := p.fimSession.StartTracing(func(e *etw.DDEventRecord) {
-		// log.Infof("Received event %d for PID %d", e.EventHeader.EventDescriptor.ID, e.EventHeader.ProcessID)
-		p.onFimEvent <- e
+		//log.Infof("Received event %d for PID %d", e.EventHeader.EventDescriptor.ID, e.EventHeader.ProcessID)
+		ev := p.zeroEvent()
+		_ := p.setProcessContext(e.Eventheader.ProcessID, ev)
+		
+		switch e.EventHeader.ProviderID {
+		case etw.DDGUID(p.fileguid):
+			switch e.EventHeader.EventDescriptor.ID {
+			case idCreate:
+			case idCreateNewFile:
+				if ca, err := parseCreateArgs(e); err == nil {
+					log.Infof("Got create/create new file on file %s", ca.string())
+					ev.Type = uint32(model.CreateNewFileEventType)
+					ev.CreateNewFile = model.CreateNewFileEvent{
+						File: model.FileEvent{
+							PathnameStr: ca.fileName,
+							BasenameStr: ca.fileName,
+						},
+					}
+					log.Infof("event -----------:", ev)
+
+				}
+			case idCleanup:
+				fallthrough
+			case idClose:
+				fallthrough
+			case idFlush:
+				// don't fall through
+				if ca, err := parseCleanupArgs(e); err == nil {
+					log.Infof("got id %v args %s", e.EventHeader.EventDescriptor.ID, ca.string())
+					delete(filePathResolver, ca.fileObject)
+				}
+			case idSetInformation:
+				fallthrough
+			case idSetDelete:
+				fallthrough
+			case idRename:
+				fallthrough
+			case idQueryInformation:
+				fallthrough
+			case idFSCTL:
+				fallthrough
+			case idRename29:
+				if sia, err := parseInformationArgs(e); err == nil {
+					log.Infof("got id %v args %s", e.EventHeader.EventDescriptor.ID, sia.string())
+				}
+			}
+
+		case etw.DDGUID(p.regguid):
+			switch e.EventHeader.EventDescriptor.ID {
+			case idRegCreateKey:
+				if cka, err := parseCreateRegistryKey(e); err == nil {
+					log.Infof("Got idRegCreateKey %s", cka.string())
+				}
+			case idRegOpenKey:
+				if cka, err := parseCreateRegistryKey(e); err == nil {
+					log.Debugf("Got idRegOpenKey %s", cka.string())
+				}
+
+			case idRegDeleteKey:
+				if dka, err := parseDeleteRegistryKey(e); err == nil {
+					log.Infof("Got idRegDeleteKey %v", dka.string())
+				}
+			case idRegFlushKey:
+				if dka, err := parseDeleteRegistryKey(e); err == nil {
+					log.Infof("Got idRegFlushKey %v", dka.string())
+				}
+			case idRegCloseKey:
+				if dka, err := parseDeleteRegistryKey(e); err == nil {
+					log.Debugf("Got idRegCloseKey %s", dka.string())
+					delete(regPathResolver, dka.keyObject)
+				}
+			case idQuerySecurityKey:
+				if dka, err := parseDeleteRegistryKey(e); err == nil {
+					log.Infof("Got idQuerySecurityKey %v", dka.keyName)
+				}
+			case idSetSecurityKey:
+				if dka, err := parseDeleteRegistryKey(e); err == nil {
+					log.Infof("Got idSetSecurityKey %v", dka.keyName)
+				}
+			case idRegSetValueKey:
+				if svk, err := parseSetValueKey(e); err == nil {
+					log.Infof("Got idRegSetValueKey %s", svk.string())
+				}
+
+			}
+		}
+
+		p.DispatchEvent(ev)
+
 	})
 	return err
 
@@ -207,7 +292,6 @@ func (p *WindowsProbe) Start() error {
 			var pce *model.ProcessCacheEntry
 			var err error
 			ev := p.zeroEvent()
-			var pidToCleanup uint32
 
 			select {
 			case <-p.ctx.Done():
@@ -258,7 +342,7 @@ func (p *WindowsProbe) Start() error {
 				log.Debugf("Received stop %v", stop)
 
 				pce = p.Resolvers.ProcessResolver.GetEntry(pid)
-				pidToCleanup = pid
+				p.Resolvers.ProcessResolver.AddToExitedQueue(pid)
 
 				ev.Type = uint32(model.ExitEventType)
 				if pce == nil {
@@ -266,98 +350,9 @@ func (p *WindowsProbe) Start() error {
 					continue
 				}
 				ev.Exit.Process = &pce.Process
-			case e := <-p.onFimEvent:
-				pce = p.Resolvers.ProcessResolver.GetEntry(e.EventHeader.ProcessID)
-				if pce == nil {
-					log.Errorf("unable to resolve pid------------------ %d", e.EventHeader.ProcessID)
-					continue
-				}
-				switch e.EventHeader.ProviderID {
-				case etw.DDGUID(p.fileguid):
-					switch e.EventHeader.EventDescriptor.ID {
-					case idCreate:
-					case idCreateNewFile:
-						if ca, err := parseCreateArgs(e); err == nil {
-							// log.Infof("Got create/create new file on file %s", ca.string())
-							ev = p.zeroEvent()
-							ev.Type = uint32(model.CreateNewFileEventType)
-							ev.CreateNewFile = model.CreateNewFileEvent{
-								File: model.FileEvent{
-									PathnameStr: ca.fileName,
-									BasenameStr: ca.fileName,
-								},
-							}
-							log.Infof("event -----------:", ev)
-						}
-					case idCleanup:
-						fallthrough
-					case idClose:
-						fallthrough
-					case idFlush:
-						// don't fall through
-						// if ca, err := parseCleanupArgs(e); err == nil {
-						// 	log.Infof("got id %v args %s", e.EventHeader.EventDescriptor.ID, ca.string())
-						// delete(filePathResolver, ca.fileObject)
-						// }
-					case idSetInformation:
-						fallthrough
-					case idSetDelete:
-						fallthrough
-					case idRename:
-						fallthrough
-					case idQueryInformation:
-						fallthrough
-					case idFSCTL:
-						fallthrough
-					case idRename29:
-						// if sia, err := parseInformationArgs(e); err == nil {
-						// 	log.Infof("got id %v args %s", e.EventHeader.EventDescriptor.ID, sia.string())
-						// }
-					}
-
-				case etw.DDGUID(p.regguid):
-					switch e.EventHeader.EventDescriptor.ID {
-					case idRegCreateKey:
-						// if cka, err := parseCreateRegistryKey(e); err == nil {
-						// 	log.Infof("Got idRegCreateKey %s", cka.string())
-						// }
-					case idRegOpenKey:
-						// if cka, err := parseCreateRegistryKey(e); err == nil {
-						// 	log.Debugf("Got idRegOpenKey %s", cka.string())
-						// }
-
-					case idRegDeleteKey:
-						// if dka, err := parseDeleteRegistryKey(e); err == nil {
-						// 	log.Infof("Got idRegDeleteKey %v", dka.string())
-						// }
-					case idRegFlushKey:
-						// if dka, err := parseDeleteRegistryKey(e); err == nil {
-						// 	log.Infof("Got idRegFlushKey %v", dka.string())
-						// }
-					case idRegCloseKey:
-					// 	// if dka, err := parseDeleteRegistryKey(e); err == nil {
-					// 	// 	log.Debugf("Got idRegCloseKey %s", dka.string())
-					// 	// 	delete(regPathResolver, dka.keyObject)
-					// 	// }
-					case idQuerySecurityKey:
-					// 	if dka, err := parseDeleteRegistryKey(e); err == nil {
-					// 		log.Infof("Got idQuerySecurityKey %v", dka.keyName)
-					// 	}
-					case idSetSecurityKey:
-						// if dka, err := parseDeleteRegistryKey(e); err == nil {
-						// 	log.Infof("Got idSetSecurityKey %v", dka.keyName)
-						// }
-					case idRegSetValueKey:
-						// if svk, err := parseSetValueKey(e); err == nil {
-						// 	log.Infof("Got idRegSetValueKey %s", svk.string())
-						// }
-
-					}
-				}
 			}
 
 			if pce == nil {
-				log.Infof("pce is nil ------------------")
 				continue
 			}
 
@@ -365,15 +360,26 @@ func (p *WindowsProbe) Start() error {
 			ev.ProcessCacheEntry = pce
 			ev.ProcessContext = &pce.ProcessContext
 
+			p.Resolvers.ProcessResolver.DequeueExited()
+
 			p.DispatchEvent(ev)
 
-			if pidToCleanup != 0 {
-				p.Resolvers.ProcessResolver.DeleteEntry(pidToCleanup, time.Now())
-				pidToCleanup = 0
-			}
 		}
 	}()
 	return p.pm.Start()
+}
+
+func (p *WindowsProbe) setProcessContext(pid uint32, event *model.Event) bool {
+	found := backoff.Retry(func() bool {
+		pce :== p.Resolvers.ProcessResolver.GetEntry(pid)
+		if pce == nil {
+			return false
+		}
+		event.ProcessCacheEntry = pce
+		event.ProcessContext = &pce.ProcessContext
+		return true
+	}, backoff.WithMaxRetries(backoff.NewConstantBackOff(500*time.Millisecond), 5))
+	return found
 }
 
 // DispatchEvent sends an event to the probe event handler
@@ -426,7 +432,6 @@ func NewWindowsProbe(probe *Probe, config *config.Config, opts Opts) (*WindowsPr
 		cancelFnc:    cancelFnc,
 		onStart:      make(chan *procmon.ProcessStartNotification),
 		onStop:       make(chan *procmon.ProcessStopNotification),
-		onFimEvent:   make(chan *etw.DDEventRecord),
 		onError:      make(chan bool),
 	}
 
