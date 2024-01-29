@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -197,7 +198,7 @@ func (p *WindowsProbe) setupEtw() error {
 					ev.CreateNewFile = model.CreateNewFileEvent{
 						File: model.FileEvent{
 							PathnameStr: ca.fileName,
-							BasenameStr: ca.fileName,
+							BasenameStr: filepath.Base(ca.fileName),
 						},
 					}
 					log.Infof("event -----------:", ev)
