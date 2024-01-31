@@ -20,7 +20,6 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/ebs"
 	"golang.org/x/sync/singleflight"
 
@@ -50,23 +49,21 @@ var (
 )
 
 type ebsBlockDevice struct {
-	id          string
-	ebsclient   *ebs.Client
-	deviceName  string
-	snapshotARN arn.ARN
-	srv         net.Listener
-	closed      chan struct{}
-	closing     chan struct{}
+	id         string
+	deviceName string
+	snapshotID string
+	srv        net.Listener
+	closed     chan struct{}
+	closing    chan struct{}
 }
 
-func startEBSBlockDevice(id string, ebsclient *ebs.Client, deviceName string, snapshotARN arn.ARN) error {
+func startEBSBlockDevice(id string, deviceName string, snapshotID string, backend backend.Backend) error {
 	bd := &ebsBlockDevice{
-		id:          id,
-		ebsclient:   ebsclient,
-		deviceName:  deviceName,
-		snapshotARN: snapshotARN,
-		closed:      make(chan struct{}),
-		closing:     make(chan struct{}),
+		id:         id,
+		deviceName: deviceName,
+		snapshotID: snapshotID,
+		closed:     make(chan struct{}),
+		closing:    make(chan struct{}),
 	}
 	ebsBlockDevicesMu.Lock()
 	if _, ok := ebsBlockDevices[bd.deviceName]; ok {
@@ -80,7 +77,7 @@ func startEBSBlockDevice(id string, ebsclient *ebs.Client, deviceName string, sn
 	if err != nil {
 		return fmt.Errorf("ebsblockdevice: could not stat device %q: %w", bd.deviceName, err)
 	}
-	if err := bd.startServer(); err != nil {
+	if err := bd.startServer(backend); err != nil {
 		return err
 	}
 	if err := bd.startClient(); err != nil {
@@ -129,18 +126,12 @@ func (bd *ebsBlockDevice) startClient() error {
 	return nil
 }
 
-func (bd *ebsBlockDevice) startServer() (err error) {
+func (bd *ebsBlockDevice) startServer(b backend.Backend) (err error) {
 	defer func() {
 		if err != nil {
 			close(bd.closed)
 		}
 	}()
-
-	_, snapshotID, _ := getARNResource(bd.snapshotARN)
-	b, err := newEBSBackend(bd.ebsclient, snapshotID)
-	if err != nil {
-		return fmt.Errorf("ebsblockdevice: could not start backend: %w", err)
-	}
 
 	addr := bd.getSocketAddr()
 	if _, err := os.Stat(addr); err == nil {

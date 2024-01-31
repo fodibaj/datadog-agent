@@ -17,6 +17,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"io"
 	"io/fs"
 	"net"
@@ -1108,7 +1109,7 @@ func attachCmd(resourceARN arn.ARN, mode diskMode, mount bool) error {
 		}
 	case nbdAttach:
 		ebsclient := ebs.NewFromConfig(cfg)
-		if err := attachSnapshotWithNBD(ctx, scan, snapshotARN, ebsclient); err != nil {
+		if err := attachEBSSnapshotWithNBD(ctx, scan, snapshotARN, ebsclient); err != nil {
 			return err
 		}
 	default:
@@ -2361,7 +2362,7 @@ func scanEBS(ctx context.Context, scan *scanTask, waiter *awsWaiter, pool *scann
 		}
 	case nbdAttach:
 		ebsclient := ebs.NewFromConfig(cfg)
-		if err := attachSnapshotWithNBD(ctx, scan, snapshotARN, ebsclient); err != nil {
+		if err := attachEBSSnapshotWithNBD(ctx, scan, snapshotARN, ebsclient); err != nil {
 			return err
 		}
 	default:
@@ -2726,12 +2727,39 @@ func (w *truncatedWriter) Write(b []byte) (n int, err error) {
 	return len(b), nil
 }
 
-func attachSnapshotWithNBD(_ context.Context, scan *scanTask, snapshotARN arn.ARN, ebsclient *ebs.Client) error {
+func attachEBSSnapshotWithNBD(_ context.Context, scan *scanTask, snapshotARN arn.ARN, ebsclient *ebs.Client) error {
+	_, snapshotID, err := getARNResource(snapshotARN)
+	if err != nil {
+		return err
+	}
+
 	device, ok := nextNBDDevice()
 	if !ok {
 		return fmt.Errorf("could not find non busy NBD block device")
 	}
-	err := startEBSBlockDevice(scan.ID, ebsclient, device, snapshotARN)
+
+	backend, err := newEBSBackend(ebsclient, snapshotID)
+	if err != nil {
+		return fmt.Errorf("could not start EBS backend: %w", err)
+	}
+
+	err = startEBSBlockDevice(scan.ID, device, snapshotID, backend)
+	scan.AttachedDeviceName = &device
+	return err
+}
+
+func attachAzureSnapshotWithNBD(_ context.Context, scan *scanTask, snapshot armcompute.Snapshot, snapshotsClient armcompute.SnapshotsClient) error {
+	device, ok := nextNBDDevice()
+	if !ok {
+		return fmt.Errorf("could not find non busy NBD block device")
+	}
+
+	backend, err := NewAzureBackend(snapshotsClient, snapshot)
+	if err != nil {
+		return fmt.Errorf("could not start EBS backend: %w", err)
+	}
+
+	err = startEBSBlockDevice(scan.ID, device, *snapshot.ID, backend)
 	scan.AttachedDeviceName = &device
 	return err
 }
