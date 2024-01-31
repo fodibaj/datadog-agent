@@ -17,6 +17,8 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"io"
 	"io/fs"
@@ -397,6 +399,8 @@ func rootCommand() *cobra.Command {
 	cmd.AddCommand(offlineCommand())
 	cmd.AddCommand(attachCommand())
 	cmd.AddCommand(cleanupCommand())
+	cmd.AddCommand(azattachCommand())
+	cmd.AddCommand(azscanCommand())
 
 	return cmd
 }
@@ -577,6 +581,173 @@ func attachCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&cliArgs.mount, "mount", false, "mount the nbd device")
 
 	return cmd
+}
+
+func azattachCommand() *cobra.Command {
+	var cliArgs struct {
+		mount bool
+	}
+
+	cmd := &cobra.Command{
+		Use:   "azattach <snapshot-resource-id>",
+		Short: "Mount the given snapshot into /snapshots/<snapshot-id>/<part> using a network block device",
+		Args:  cobra.ExactArgs(1),
+		RunE: runWithModules(func(cmd *cobra.Command, args []string) error {
+			resourceID, err := arm.ParseResourceID(args[0])
+			if err != nil {
+				return err
+			}
+			if resourceID.ResourceType.String() != "Microsoft.Compute/snapshots" {
+				return fmt.Errorf("invalid resource type: %v", resourceID.ResourceType)
+			}
+			return azattachCmd(*resourceID, globalParams.diskMode, cliArgs.mount)
+		}),
+	}
+
+	cmd.Flags().BoolVar(&cliArgs.mount, "mount", false, "mount the nbd device")
+
+	return cmd
+}
+
+func azscanCommand() *cobra.Command {
+	var flags struct {
+		id       string
+		Hostname string
+	}
+	cmd := &cobra.Command{
+		Use:   "azscan",
+		Short: "execute a scan",
+		RunE: runWithModules(func(cmd *cobra.Command, args []string) error {
+			resourceID, err := arm.ParseResourceID(flags.id)
+			if err != nil {
+				return err
+			}
+			if resourceID.ResourceType.String() != "Microsoft.Compute/snapshots" {
+				return fmt.Errorf("invalid resource type: %v", resourceID.ResourceType)
+			}
+			return azscanCmd(*resourceID, flags.Hostname, globalParams.defaultActions)
+		}),
+	}
+
+	cmd.Flags().StringVar(&flags.id, "id", "", "ID of the resource to scan")
+	cmd.Flags().StringVar(&flags.Hostname, "hostname", "unknown", "scan hostname")
+	_ = cmd.MarkFlagRequired("id")
+	return cmd
+}
+
+func azscanCmd(resourceID arm.ResourceID, targetHostname string, actions []string) error {
+	ctx := ctxTerminated()
+
+	ctxhostname, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+
+	hostname, err := utils.GetHostnameWithContext(ctxhostname)
+	if err != nil {
+		hostname = "unknown"
+	}
+
+	//roles := getDefaultRolesMapping()
+	fakeARN := "arn:aws:ec2:az-msft-1:000000000000:snapshot/snap-" + hex.EncodeToString([]byte(resourceID.Name))
+	task, err := newScanTask(fakeARN, hostname, targetHostname, actions, nil, globalParams.diskMode)
+	if err != nil {
+		return err
+	}
+
+	scanner, err := newSideScanner(hostname, 1, defaultScannersMax)
+	if err != nil {
+		return fmt.Errorf("could not initialize agentless-scanner: %w", err)
+	}
+	scanner.printResults = true
+	go func() {
+		scanner.pushConfig(ctx, &scanConfig{
+			Type:  awsScan,
+			Tasks: []*scanTask{task},
+		})
+		scanner.stop()
+	}()
+	scanner.start(ctx)
+	return nil
+}
+
+func azattachCmd(resourceID arm.ResourceID, mode diskMode, mount bool) error {
+	ctx := ctxTerminated()
+
+	if mode == noAttach {
+		mode = nbdAttach
+	}
+
+	ctxhostname, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+
+	hostname, err := utils.GetHostnameWithContext(ctxhostname)
+	if err != nil {
+		hostname = "unknown"
+	}
+
+	fakeARN := "arn:aws:ec2:az-msft-1:000000000000:snapshot/snap-" + hex.EncodeToString([]byte(resourceID.Name))
+	scan, err := newScanTask(fakeARN, hostname, resourceID.Name, nil, nil, mode)
+	if err != nil {
+		return err
+	}
+	defer cleanupScan(scan)
+
+	var snapshotID arm.ResourceID
+	switch resourceID.ResourceType.Type {
+	case resourceTypeVolume:
+		panic("TODO: create snapshot of volume")
+	case "snapshots":
+		snapshotID = resourceID
+	default:
+		panic("unreachable")
+	}
+
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		return err
+	}
+	computeClientFactory, err := armcompute.NewClientFactory(snapshotID.SubscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
+	snapshotsClient := computeClientFactory.NewSnapshotsClient()
+	snapshotResponse, err := snapshotsClient.Get(ctx, snapshotID.ResourceGroupName, snapshotID.Name, nil)
+	if err != nil {
+		return err
+	}
+
+	switch mode {
+	case volumeAttach:
+		panic("azure volumeAttach not implemented")
+	case nbdAttach:
+		if err := attachAzureSnapshotWithNBD(ctx, scan, snapshotResponse.Snapshot, *snapshotsClient); err != nil {
+			return err
+		}
+	default:
+		panic("unreachable")
+	}
+
+	partitions, err := listDevicePartitions(ctx, scan)
+	if err != nil {
+		log.Errorf("could not list partitions (device is still available on %q): %v", *scan.AttachedDeviceName, err)
+	} else {
+		for _, part := range partitions {
+			fmt.Println(part.devicePath, part.fsType)
+		}
+		if mount {
+			mountPoints, err := mountDevice(ctx, scan, partitions)
+			if err != nil {
+				log.Errorf("could not mount (device is still available on %q): %v", *scan.AttachedDeviceName, err)
+			} else {
+				fmt.Println()
+				for _, mountPoint := range mountPoints {
+					fmt.Println(mountPoint)
+				}
+			}
+		}
+	}
+
+	<-ctx.Done()
+	return nil
 }
 
 func cleanupCommand() *cobra.Command {
