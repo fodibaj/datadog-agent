@@ -631,7 +631,7 @@ func azscanCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&flags.id, "id", "", "ID of the resource to scan")
-	cmd.Flags().StringVar(&flags.Hostname, "hostname", "unknown", "scan hostname")
+	cmd.Flags().StringVar(&flags.Hostname, "hostname", "azure-unknown", "scan hostname")
 	_ = cmd.MarkFlagRequired("id")
 	return cmd
 }
