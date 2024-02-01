@@ -2445,41 +2445,7 @@ func getSelfEC2InstanceIndentity(ctx context.Context) (*imds.GetInstanceIdentity
 }
 
 func scanEBS(ctx context.Context, scan *scanTask, waiter *awsWaiter, pool *scannersPool, resultsCh chan scanResult) error {
-	resourceType, _, err := getARNResource(scan.ARN)
-	if err != nil {
-		return err
-	}
-	if scan.TargetHostname == "" {
-		return fmt.Errorf("ebs-volume: missing hostname")
-	}
-
-	defer statsd.Flush()
-
-	var snapshotARN arn.ARN
-	switch resourceType {
-	case resourceTypeVolume:
-		assumedRole := scan.Roles[scan.ARN.AccountID]
-		cfg, err := newAWSConfig(ctx, scan.ARN.Region, assumedRole)
-		if err != nil {
-			return err
-		}
-		ec2client := ec2.NewFromConfig(cfg)
-		if err != nil {
-			return err
-		}
-		snapshotARN, err = createSnapshot(ctx, scan, waiter, ec2client, scan.ARN)
-		if err != nil {
-			return err
-		}
-	case resourceTypeSnapshot:
-		snapshotARN = scan.ARN
-	default:
-		return fmt.Errorf("ebs-volume: bad arn %q", scan.ARN)
-	}
-
-	if snapshotARN.Resource == "" {
-		return fmt.Errorf("ebs-volume: missing snapshot ID")
-	}
+	snapshotARN := scan.ARN
 
 	log.Infof("%s: start EBS scanning", scan)
 
