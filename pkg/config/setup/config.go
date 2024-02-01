@@ -20,6 +20,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/exp/slices"
+	"gopkg.in/yaml.v2"
+
 	"github.com/DataDog/datadog-agent/comp/core/secrets"
 	"github.com/DataDog/datadog-agent/pkg/collector/check/defaults"
 	pkgconfigenv "github.com/DataDog/datadog-agent/pkg/config/env"
@@ -28,8 +31,6 @@ import (
 	"github.com/DataDog/datadog-agent/pkg/util/log"
 	"github.com/DataDog/datadog-agent/pkg/util/optional"
 	"github.com/DataDog/datadog-agent/pkg/util/system"
-	"golang.org/x/exp/slices"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -244,8 +245,8 @@ func InitConfig(config pkgconfigmodel.Config) {
 	config.BindEnv("ipc_address") // deprecated: use `cmd_host` instead
 	config.BindEnvAndSetDefault("cmd_host", "localhost")
 	config.BindEnvAndSetDefault("cmd_port", 5001)
-	config.BindEnvAndSetDefault("agent_ipc_host", "localhost")
-	config.BindEnvAndSetDefault("agent_ipc_port", 0)
+	config.BindEnvAndSetDefault("agent_ipc.host", "localhost")
+	config.BindEnvAndSetDefault("agent_ipc.port", 0)
 	config.BindEnvAndSetDefault("default_integration_http_timeout", 9)
 	config.BindEnvAndSetDefault("integration_tracing", false)
 	config.BindEnvAndSetDefault("integration_tracing_exhaustive", false)
