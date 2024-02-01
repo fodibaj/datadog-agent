@@ -199,16 +199,17 @@ type (
 	}
 
 	scanTask struct {
-		ID              string       `json:"ID"`
-		CreatedAt       time.Time    `json:"CreatedAt"`
-		StartedAt       time.Time    `json:"StartedAt"`
-		Type            scanType     `json:"Type"`
-		ARN             arn.ARN      `json:"ARN"`
-		TargetHostname  string       `json:"Hostname"`
-		ScannerHostname string       `json:"ScannerHostname"`
-		Actions         []scanAction `json:"Actions"`
-		Roles           rolesMapping `json:"Roles"`
-		DiskMode        diskMode     `json:"DiskMode"`
+		ID              string         `json:"ID"`
+		CreatedAt       time.Time      `json:"CreatedAt"`
+		StartedAt       time.Time      `json:"StartedAt"`
+		Type            scanType       `json:"Type"`
+		ARN             arn.ARN        `json:"ARN"`
+		ResourceID      arm.ResourceID `json:"ResourceID"`
+		TargetHostname  string         `json:"Hostname"`
+		ScannerHostname string         `json:"ScannerHostname"`
+		Actions         []scanAction   `json:"Actions"`
+		Roles           rolesMapping   `json:"Roles"`
+		DiskMode        diskMode       `json:"DiskMode"`
 
 		// Lifecycle metadata of the task
 		CreatedSnapshots        map[string]*time.Time `json:"CreatedSnapshots"`
@@ -649,6 +650,7 @@ func azscanCmd(resourceID arm.ResourceID, targetHostname string, actions []strin
 	//roles := getDefaultRolesMapping()
 	fakeARN := "arn:aws:ec2:az-msft-1:000000000000:snapshot/snap-" + hex.EncodeToString([]byte(resourceID.Name))
 	task, err := newScanTask(fakeARN, hostname, targetHostname, actions, nil, globalParams.diskMode)
+	task.ResourceID = resourceID
 	if err != nil {
 		return err
 	}
@@ -1314,24 +1316,8 @@ func attachCmd(resourceARN arn.ARN, mode diskMode, mount bool) error {
 func newScanTask(resourceARN, scannerHostname, targetHostname string, actions []string, roles rolesMapping, mode diskMode) (*scanTask, error) {
 	var scan scanTask
 	var err error
-	scan.ARN, err = parseARN(resourceARN, resourceTypeLocalDir, resourceTypeSnapshot, resourceTypeVolume, resourceTypeFunction)
-	if err != nil {
-		return nil, err
-	}
-	resourceType, _, err := getARNResource(scan.ARN)
-	if err != nil {
-		return nil, err
-	}
-	switch {
-	case resourceType == resourceTypeLocalDir:
-		scan.Type = hostScanType
-	case resourceType == resourceTypeSnapshot || resourceType == resourceTypeVolume:
-		scan.Type = ebsScanType
-	case resourceType == resourceTypeFunction:
-		scan.Type = lambdaScanType
-	default:
-		return nil, fmt.Errorf("unsupported resource type %q for scanning", resourceType)
-	}
+
+	scan.Type = ebsScanType
 	scan.ScannerHostname = scannerHostname
 	scan.TargetHostname = targetHostname
 	scan.Roles = roles
@@ -2469,20 +2455,18 @@ func scanEBS(ctx context.Context, scan *scanTask, waiter *awsWaiter, pool *scann
 
 	defer statsd.Flush()
 
-	assumedRole := scan.Roles[scan.ARN.AccountID]
-	cfg, err := newAWSConfig(ctx, scan.ARN.Region, assumedRole)
-	if err != nil {
-		return err
-	}
-
-	ec2client := ec2.NewFromConfig(cfg)
-	if err != nil {
-		return err
-	}
-
 	var snapshotARN arn.ARN
 	switch resourceType {
 	case resourceTypeVolume:
+		assumedRole := scan.Roles[scan.ARN.AccountID]
+		cfg, err := newAWSConfig(ctx, scan.ARN.Region, assumedRole)
+		if err != nil {
+			return err
+		}
+		ec2client := ec2.NewFromConfig(cfg)
+		if err != nil {
+			return err
+		}
 		snapshotARN, err = createSnapshot(ctx, scan, waiter, ec2client, scan.ARN)
 		if err != nil {
 			return err
@@ -2532,8 +2516,21 @@ func scanEBS(ctx context.Context, scan *scanTask, waiter *awsWaiter, pool *scann
 			return err
 		}
 	case nbdAttach:
-		ebsclient := ebs.NewFromConfig(cfg)
-		if err := attachEBSSnapshotWithNBD(ctx, scan, snapshotARN, ebsclient); err != nil {
+		cred, err := azidentity.NewDefaultAzureCredential(nil)
+		if err != nil {
+			return err
+		}
+		computeClientFactory, err := armcompute.NewClientFactory(scan.ResourceID.SubscriptionID, cred, nil)
+		if err != nil {
+			return err
+		}
+		snapshotsClient := computeClientFactory.NewSnapshotsClient()
+		snapshotResponse, err := snapshotsClient.Get(ctx, scan.ResourceID.ResourceGroupName, scan.ResourceID.Name, nil)
+		if err != nil {
+			return err
+		}
+
+		if err := attachAzureSnapshotWithNBD(ctx, scan, snapshotResponse.Snapshot, *snapshotsClient); err != nil {
 			return err
 		}
 	default:
