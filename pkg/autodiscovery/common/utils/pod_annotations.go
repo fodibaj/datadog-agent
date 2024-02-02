@@ -54,9 +54,10 @@ func ExtractTemplatesFromPodAnnotations(entityName string, annotations map[strin
 // (ad.datadoghq.com/redis.checks) JSON string into []integration.Config.
 func parseChecksJSON(adIdentifier string, checksJSON string) ([]integration.Config, error) {
 	var namedChecks map[string]struct {
-		Name       string          `json:"name"`
-		InitConfig json.RawMessage `json:"init_config"`
-		Instances  []interface{}   `json:"instances"`
+		Name                    string          `json:"name"`
+		InitConfig              json.RawMessage `json:"init_config"`
+		Instances               []interface{}   `json:"instances"`
+		IgnoreAutodiscoveryTags bool            `json:"ignore_autodiscovery_tags"`
 	}
 
 	err := json.Unmarshal([]byte(checksJSON), &namedChecks)
@@ -75,9 +76,10 @@ func parseChecksJSON(adIdentifier string, checksJSON string) ([]integration.Conf
 		}
 
 		c := integration.Config{
-			Name:          name,
-			InitConfig:    integration.Data(config.InitConfig),
-			ADIdentifiers: []string{adIdentifier},
+			Name:                    name,
+			InitConfig:              integration.Data(config.InitConfig),
+			ADIdentifiers:           []string{adIdentifier},
+			IgnoreAutodiscoveryTags: config.IgnoreAutodiscoveryTags,
 		}
 
 		for _, i := range config.Instances {

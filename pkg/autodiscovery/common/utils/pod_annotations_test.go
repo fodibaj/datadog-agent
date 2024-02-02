@@ -112,6 +112,32 @@ func TestExtractTemplatesFromPodAnnotations(t *testing.T) {
 			},
 		},
 		{
+			name: "Nominal case with two templates and ignore autodiscovery tags",
+			annotations: map[string]string{
+				"ad.datadoghq.com/foobar.check_names":               "[\"apache\",\"http_check\"]",
+				"ad.datadoghq.com/foobar.init_configs":              "[{},{}]",
+				"ad.datadoghq.com/foobar.instances":                 "[{\"apache_status_url\":\"http://%%host%%/server-status?auto\"},{\"name\":\"My service\",\"timeout\":1,\"url\":\"http://%%host%%\"}]",
+				"ad.datadoghq.com/foobar.ignore_autodiscovery_tags": "true",
+			},
+			adIdentifier: "foobar",
+			output: []integration.Config{
+				{
+					Name:                    "apache",
+					Instances:               []integration.Data{integration.Data("{\"apache_status_url\":\"http://%%host%%/server-status?auto\"}")},
+					InitConfig:              integration.Data("{}"),
+					ADIdentifiers:           []string{adID},
+					IgnoreAutodiscoveryTags: true,
+				},
+				{
+					Name:                    "http_check",
+					Instances:               []integration.Data{integration.Data("{\"name\":\"My service\",\"timeout\":1,\"url\":\"http://%%host%%\"}")},
+					InitConfig:              integration.Data("{}"),
+					ADIdentifiers:           []string{adID},
+					IgnoreAutodiscoveryTags: true,
+				},
+			},
+		},
+		{
 			name: "Take one, ignore one",
 			annotations: map[string]string{
 				"ad.datadoghq.com/foobar.check_names":  "[\"apache\"]",
@@ -301,6 +327,31 @@ func TestExtractTemplatesFromPodAnnotations(t *testing.T) {
 					Instances:     []integration.Data{integration.Data(`{"apache_status_url":"http://%%host%%/server-status?auto2"}`)},
 					InitConfig:    integration.Data("{}"),
 					ADIdentifiers: []string{adID},
+				},
+			},
+		},
+		{
+			name: "v2 annotations with ignore_ad_tags",
+			annotations: map[string]string{
+				"ad.datadoghq.com/foobar.checks": `{
+					"apache": {
+						"instances": [
+							{"apache_status_url":"http://%%host%%/server-status?auto2"}
+						],
+						"ignore_autodiscovery_tags": true
+					}
+				}`,
+				"service-discovery.datadoghq.com/foobar.check_names": `["foo"]`,
+				"ad.datadoghq.com/foobar.check_names":                `["bar"]`,
+			},
+			adIdentifier: "foobar",
+			output: []integration.Config{
+				{
+					Name:                    "apache",
+					Instances:               []integration.Data{integration.Data(`{"apache_status_url":"http://%%host%%/server-status?auto2"}`)},
+					InitConfig:              integration.Data("{}"),
+					ADIdentifiers:           []string{adID},
+					IgnoreAutodiscoveryTags: true,
 				},
 			},
 		},
