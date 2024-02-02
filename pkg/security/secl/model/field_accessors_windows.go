@@ -398,6 +398,38 @@ func (ev *Event) GetExitPpid() uint32 {
 	return ev.Exit.Process.PPid
 }
 
+// GetOpenFileName returns the value of the field, resolving if necessary
+func (ev *Event) GetOpenFileName() string {
+	if ev.GetEventType().String() != "open" {
+		return ""
+	}
+	return ev.FieldHandlers.ResolveFileBasename(ev, &ev.Open.File)
+}
+
+// GetOpenFileNameLength returns the value of the field, resolving if necessary
+func (ev *Event) GetOpenFileNameLength() int {
+	if ev.GetEventType().String() != "open" {
+		return 0
+	}
+	return len(ev.FieldHandlers.ResolveFileBasename(ev, &ev.Open.File))
+}
+
+// GetOpenFilePath returns the value of the field, resolving if necessary
+func (ev *Event) GetOpenFilePath() string {
+	if ev.GetEventType().String() != "open" {
+		return ""
+	}
+	return ev.FieldHandlers.ResolveFilePath(ev, &ev.Open.File)
+}
+
+// GetOpenFilePathLength returns the value of the field, resolving if necessary
+func (ev *Event) GetOpenFilePathLength() int {
+	if ev.GetEventType().String() != "open" {
+		return 0
+	}
+	return len(ev.FieldHandlers.ResolveFilePath(ev, &ev.Open.File))
+}
+
 // GetProcessAncestorsCmdline returns the value of the field, resolving if necessary
 func (ev *Event) GetProcessAncestorsCmdline() []string {
 	if ev.BaseEvent.ProcessContext == nil {
