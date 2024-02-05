@@ -70,7 +70,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Post comment
-        uses: marocchino/sticky-pull-request-comment@v2.5.0
+        uses: marocchino/sticky-pull-request-comment@v2.9.0
         with:
           recreate: true
           message: |
