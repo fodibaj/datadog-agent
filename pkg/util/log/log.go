@@ -42,7 +42,7 @@ var (
 	// things the agent does, we still: load the conf, resolve secrets inside,
 	// compute the final proxy settings, ...
 	//
-	// This buffer should be very short lived.
+	// This buffer should be very  short lived.
 	logsBuffer        = []func(){}
 	bufferMutex       sync.Mutex
 	defaultStackDepth = 3
