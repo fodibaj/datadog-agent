@@ -49,7 +49,11 @@ func TestDockerFakeintakeSuiteUDS(t *testing.T) {
 
 // TestDockerFakeintakeSuiteTCP runs basic Trace Agent tests over the TCP transport
 func TestDockerFakeintakeSuiteTCP(t *testing.T) {
-	e2e.Run(t, &DockerFakeintakeSuite{transport: tcp}, dockerSuiteOpts(tcp)...)
+	// FIXME: This is a temporary workaround to use the 7-rc tag until the 7.51.0 release.
+	// When running in CI, the DockerHost unexpectedly installs the latest GA version of the agent,
+	// which did not support container tagging on TCP + cgroupsv2.
+	options := dockerSuiteOpts(tcp, awsdocker.WithAgentOptions(dockeragentparams.WithImageTag("7-rc")))
+	e2e.Run(t, &DockerFakeintakeSuite{transport: tcp}, options...)
 }
 
 func (s *DockerFakeintakeSuite) TestTraceAgentMetrics() {
