@@ -15,6 +15,8 @@ import (
 	"github.com/DataDog/datadog-agent/cmd/process-agent/command"
 	"github.com/DataDog/datadog-agent/comp/core"
 	"github.com/DataDog/datadog-agent/comp/core/config"
+	"github.com/DataDog/datadog-agent/comp/core/tagger"
+	"github.com/DataDog/datadog-agent/comp/core/workloadmeta"
 	"github.com/DataDog/datadog-agent/comp/process"
 	apiutil "github.com/DataDog/datadog-agent/pkg/api/util"
 	ddconfig "github.com/DataDog/datadog-agent/pkg/config"
@@ -42,6 +44,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 				fx.Supply(globalParams, command.GetCoreBundleParamsForOneShot(globalParams)),
 				core.Bundle(),
 				process.Bundle(),
+				workloadmeta.Module(),
+				tagger.Module(),
 			)
 		},
 	}
@@ -56,6 +60,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 					fx.Supply(globalParams, command.GetCoreBundleParamsForOneShot(globalParams)),
 					core.Bundle(),
 					process.Bundle(),
+					workloadmeta.Module(),
+					tagger.Module(),
 				)
 			},
 		},
@@ -71,6 +77,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 					fx.Supply(globalParams, args, command.GetCoreBundleParamsForOneShot(globalParams)),
 					core.Bundle(),
 					process.Bundle(),
+					workloadmeta.Module(),
+					tagger.Module(),
 				)
 			},
 		},
@@ -85,6 +93,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 					fx.Supply(globalParams, args, command.GetCoreBundleParamsForOneShot(globalParams)),
 					core.Bundle(),
 					process.Bundle(),
+					workloadmeta.Module(),
+					tagger.Module(),
 				)
 			},
 		},

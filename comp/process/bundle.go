@@ -12,8 +12,7 @@
 package process
 
 import (
-	"github.com/DataDog/datadog-agent/comp/core/tagger"
-	"github.com/DataDog/datadog-agent/comp/core/workloadmeta"
+	"github.com/DataDog/datadog-agent/comp/process/agent/agentimpl"
 	"github.com/DataDog/datadog-agent/comp/process/apiserver"
 	"github.com/DataDog/datadog-agent/comp/process/connectionscheck/connectionscheckimpl"
 	"github.com/DataDog/datadog-agent/comp/process/containercheck/containercheckimpl"
@@ -49,10 +48,10 @@ func Bundle() fxutil.BundleOptions {
 		rtcontainercheckimpl.Module(),
 		processdiscoverycheckimpl.Module(),
 
+		agentimpl.Module(),
+
 		hostinfoimpl.Module(),
 		expvarsimpl.Module(),
 		apiserver.Module(),
-		forwardersimpl.Module(),
-		workloadmeta.Module(),
-		tagger.Module())
+		forwardersimpl.Module())
 }

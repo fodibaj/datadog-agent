@@ -21,6 +21,8 @@ import (
 	"github.com/DataDog/datadog-agent/comp/core/config"
 	"github.com/DataDog/datadog-agent/comp/core/log"
 	compStatus "github.com/DataDog/datadog-agent/comp/core/status"
+	"github.com/DataDog/datadog-agent/comp/core/tagger"
+	"github.com/DataDog/datadog-agent/comp/core/workloadmeta"
 	"github.com/DataDog/datadog-agent/comp/process"
 	apiutil "github.com/DataDog/datadog-agent/pkg/api/util"
 	ddconfig "github.com/DataDog/datadog-agent/pkg/config"
@@ -80,6 +82,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 				fx.Supply(cliParams, command.GetCoreBundleParamsForOneShot(globalParams)),
 				core.Bundle(),
 				process.Bundle(),
+				workloadmeta.Module(),
+				tagger.Module(),
 			)
 		},
 	}

@@ -44,6 +44,8 @@ import (
 	"github.com/DataDog/datadog-agent/comp/core/flare"
 	"github.com/DataDog/datadog-agent/comp/core/log"
 	"github.com/DataDog/datadog-agent/comp/core/log/logimpl"
+	"github.com/DataDog/datadog-agent/comp/process"
+
 	"github.com/DataDog/datadog-agent/comp/core/secrets"
 	"github.com/DataDog/datadog-agent/comp/core/status"
 	"github.com/DataDog/datadog-agent/comp/core/status/statusimpl"
@@ -79,6 +81,7 @@ import (
 	netflowServer "github.com/DataDog/datadog-agent/comp/netflow/server"
 	"github.com/DataDog/datadog-agent/comp/otelcol"
 	otelcollector "github.com/DataDog/datadog-agent/comp/otelcol/collector"
+	processAgent "github.com/DataDog/datadog-agent/comp/process/agent"
 	processagentStatusImpl "github.com/DataDog/datadog-agent/comp/process/status/statusimpl"
 	"github.com/DataDog/datadog-agent/comp/remote-config/rcclient"
 	"github.com/DataDog/datadog-agent/comp/snmptraps"
@@ -194,6 +197,7 @@ func run(log log.Component,
 	sharedSerializer serializer.MetricSerializer,
 	cliParams *cliParams,
 	logsAgent optional.Option[logsAgent.Component],
+	processAgent optional.Option[processAgent.Component],
 	otelcollector otelcollector.Component,
 	_ host.Component,
 	_ inventoryagent.Component,
@@ -259,6 +263,7 @@ func run(log log.Component,
 		taggerComp,
 		rcclient,
 		logsAgent,
+		processAgent,
 		forwarder,
 		sharedSerializer,
 		otelcollector,
@@ -375,6 +380,7 @@ func getSharedFxOption() fx.Option {
 		fx.Provide(func(demultiplexer demultiplexer.Component) optional.Option[collector.Collector] {
 			return optional.NewOption(common.LoadCollector(demultiplexer))
 		}),
+		process.Bundle(),
 	)
 }
 
@@ -391,6 +397,7 @@ func startAgent(
 	taggerComp tagger.Component,
 	rcclient rcclient.Component,
 	logsAgent optional.Option[logsAgent.Component],
+	processAgent optional.Option[processAgent.Component],
 	_ defaultforwarder.Component,
 	_ serializer.MetricSerializer,
 	otelcollector otelcollector.Component,
@@ -526,6 +533,11 @@ func startAgent(
 		logsAgent.AddScheduler(adScheduler.New(common.AC))
 	}
 
+	if procAgent, ok := processAgent.Get(); ok {
+		log.Infof("Process Agent Enabled: %v", procAgent)
+	} else {
+		log.Infof("Process Agent Not Enabled: %v", procAgent)
+	}
 	// start the cloudfoundry container tagger
 	if pkgconfig.IsFeaturePresent(pkgconfig.CloudFoundry) && !pkgconfig.Datadog.GetBool("cloud_foundry_buildpack") {
 		containerTagger, err := containertagger.NewContainerTagger()

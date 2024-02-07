@@ -23,6 +23,8 @@ import (
 	"github.com/DataDog/datadog-agent/comp/core/config"
 	"github.com/DataDog/datadog-agent/comp/core/log"
 	"github.com/DataDog/datadog-agent/comp/core/sysprobeconfig"
+	"github.com/DataDog/datadog-agent/comp/core/tagger"
+	"github.com/DataDog/datadog-agent/comp/core/workloadmeta"
 	"github.com/DataDog/datadog-agent/comp/process"
 	"github.com/DataDog/datadog-agent/pkg/process/checks"
 	"github.com/DataDog/datadog-agent/pkg/process/events"
@@ -75,6 +77,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 				fx.Supply(cliParams, command.GetCoreBundleParamsForOneShot(globalParams)),
 				core.Bundle(),
 				process.Bundle(),
+				workloadmeta.Module(),
+				tagger.Module(),
 			)
 		},
 		SilenceUsage: true,
@@ -89,6 +93,8 @@ func Commands(globalParams *command.GlobalParams) []*cobra.Command {
 				fx.Supply(cliParams, command.GetCoreBundleParamsForOneShot(globalParams)),
 				core.Bundle(),
 				process.Bundle(),
+				workloadmeta.Module(),
+				tagger.Module(),
 			)
 		},
 		SilenceUsage: true,
