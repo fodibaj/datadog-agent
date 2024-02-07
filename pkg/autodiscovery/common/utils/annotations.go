@@ -16,13 +16,13 @@ import (
 )
 
 const (
-	instancePath              = "instances"
-	checkNamePath             = "check_names"
-	initConfigPath            = "init_configs"
-	ignore_autodiscovery_tags = "ignore_autodiscovery_tags"
-	logsConfigPath            = "logs"
-	checksPath                = "checks"
-	checkIDPath               = "check.id"
+	instancePath            = "instances"
+	checkNamePath           = "check_names"
+	initConfigPath          = "init_configs"
+	ignoreAutodiscoveryTags = "ignore_autodiscovery_tags"
+	logsConfigPath          = "logs"
+	checksPath              = "checks"
+	checkIDPath             = "check.id"
 )
 
 // ExtractTemplatesFromMap looks for autodiscovery configurations in a given
@@ -74,7 +74,7 @@ func extractCheckTemplatesFromMap(key string, input map[string]string, prefix st
 	if err != nil {
 		return []integration.Config{}, fmt.Errorf("in %s: %s", instancePath, err)
 	}
-	ignoreAdTags, _ := strconv.ParseBool(input[prefix+ignore_autodiscovery_tags])
+	ignoreAdTags, _ := strconv.ParseBool(input[prefix+ignoreAutodiscoveryTags])
 	return BuildTemplates(key, checkNames, initConfigs, instances, ignoreAdTags), nil
 }
 
