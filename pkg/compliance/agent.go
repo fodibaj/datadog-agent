@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"expvar"
 	"fmt"
 	"hash/fnv"
@@ -317,13 +318,16 @@ func (a *Agent) runRegoBenchmarks(ctx context.Context) {
 			resolver := NewResolver(ctx, a.opts.ResolverOptions)
 			for _, rule := range benchmark.Rules {
 				inputs, err := resolver.ResolveInputs(ctx, rule)
+				if errors.Is(err, context.Canceled) {
+					resolver.Close()
+					return
+				}
 				if err != nil {
 					a.reportCheckEvents(checkInterval, CheckEventFromError(RegoEvaluator, rule, benchmark, err))
 				} else {
 					events := EvaluateRegoRule(ctx, inputs, benchmark, rule)
 					a.reportCheckEvents(checkInterval, events...)
 				}
-
 				if sleepAborted(ctx, throttler.C) {
 					resolver.Close()
 					return
