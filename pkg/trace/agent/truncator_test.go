@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	pb "github.com/DataDog/datadog-agent/pkg/proto/pbgo/trace"
 	"github.com/DataDog/datadog-agent/pkg/trace/config"
@@ -99,6 +100,24 @@ func TestTruncateMetaValueTooLong(t *testing.T) {
 	a.Truncate(s)
 	for _, v := range s.Meta {
 		assert.True(t, len(v) < MaxMetaValLen+4)
+	}
+}
+
+func TestTruncateStructuredMetaTag(t *testing.T) {
+	key := strings.Repeat("k", MaxMetaKeyLen+1)
+	val := strings.Repeat("v", MaxMetaValLen+1)
+
+	for suffix := range StructuredMetaKeySuffixes {
+		suffix := suffix
+		t.Run(suffix, func(t *testing.T) {
+			a := &Agent{conf: config.New()}
+			s := testSpan()
+			key := key + suffix
+			s.Meta[key] = val
+			a.Truncate(s)
+			// The value must not be truncated.
+			require.Equal(t, val, s.Meta[key])
+		})
 	}
 }
 
