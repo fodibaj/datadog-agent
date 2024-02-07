@@ -517,8 +517,8 @@ func newFileSerializer(fe *model.FileEvent, e *model.Event, forceInode ...uint64
 		GID:                 int64(fe.GID),
 		User:                e.FieldHandlers.ResolveFileFieldsUser(e, &fe.FileFields),
 		Group:               e.FieldHandlers.ResolveFileFieldsGroup(e, &fe.FileFields),
-		Mtime:               getTimeIfNotZero(time.Unix(0, int64(fe.MTime))),
-		Ctime:               getTimeIfNotZero(time.Unix(0, int64(fe.CTime))),
+		Mtime:               utils.NewEasyjsonTimeIfNotZero(time.Unix(0, int64(fe.MTime))),
+		Ctime:               utils.NewEasyjsonTimeIfNotZero(time.Unix(0, int64(fe.CTime))),
 		InUpperLayer:        getInUpperLayer(&fe.FileFields),
 		PackageName:         e.FieldHandlers.ResolvePackageName(e, fe),
 		PackageVersion:      e.FieldHandlers.ResolvePackageVersion(e, fe),
@@ -563,9 +563,9 @@ func newProcessSerializer(ps *model.Process, e *model.Event) *ProcessSerializer 
 		argv0, _ := sprocess.GetProcessArgv0(ps)
 
 		psSerializer := &ProcessSerializer{
-			ForkTime: getTimeIfNotZero(ps.ForkTime),
-			ExecTime: getTimeIfNotZero(ps.ExecTime),
-			ExitTime: getTimeIfNotZero(ps.ExitTime),
+			ForkTime: utils.NewEasyjsonTimeIfNotZero(ps.ForkTime),
+			ExecTime: utils.NewEasyjsonTimeIfNotZero(ps.ExecTime),
+			ExitTime: utils.NewEasyjsonTimeIfNotZero(ps.ExitTime),
 
 			Pid:           ps.Pid,
 			Tid:           ps.Tid,
@@ -605,7 +605,7 @@ func newProcessSerializer(ps *model.Process, e *model.Event) *ProcessSerializer 
 		if len(ps.ContainerID) != 0 {
 			psSerializer.Container = &ContainerContextSerializer{
 				ID:        ps.ContainerID,
-				CreatedAt: getTimeIfNotZero(time.Unix(0, int64(e.GetContainerCreatedAt()))),
+				CreatedAt: utils.NewEasyjsonTimeIfNotZero(time.Unix(0, int64(e.GetContainerCreatedAt()))),
 			}
 		}
 		return psSerializer
@@ -964,7 +964,7 @@ func NewEventSerializer(event *model.Event) *EventSerializer {
 	if ctx, exists := event.FieldHandlers.ResolveContainerContext(event); exists {
 		s.ContainerContextSerializer = &ContainerContextSerializer{
 			ID:        ctx.ID,
-			CreatedAt: getTimeIfNotZero(time.Unix(0, int64(ctx.CreatedAt))),
+			CreatedAt: utils.NewEasyjsonTimeIfNotZero(time.Unix(0, int64(ctx.CreatedAt))),
 		}
 	}
 
@@ -1056,8 +1056,8 @@ func NewEventSerializer(event *model.Event) *EventSerializer {
 		s.FileEventSerializer = &FileEventSerializer{
 			FileSerializer: *newFileSerializer(&event.Utimes.File, event),
 			Destination: &FileSerializer{
-				Atime: getTimeIfNotZero(event.Utimes.Atime),
-				Mtime: getTimeIfNotZero(event.Utimes.Mtime),
+				Atime: utils.NewEasyjsonTimeIfNotZero(event.Utimes.Atime),
+				Mtime: utils.NewEasyjsonTimeIfNotZero(event.Utimes.Mtime),
 			},
 		}
 		s.EventContextSerializer.Outcome = serializeOutcome(event.Utimes.Retval)
