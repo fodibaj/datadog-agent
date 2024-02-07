@@ -19,6 +19,7 @@ import (
 
 	"github.com/DataDog/datadog-agent/comp/checks/winregistry"
 	winregistryimpl "github.com/DataDog/datadog-agent/comp/checks/winregistry/impl"
+	"github.com/DataDog/datadog-agent/comp/core/agenttelemetry"
 
 	"go.uber.org/fx"
 
@@ -108,6 +109,7 @@ func StartAgentWithDefaults(ctxChan <-chan context.Context) (<-chan error, error
 			agentAPI internalAPI.Component,
 			pkgSigning packagesigning.Component,
 			statusComponent status.Component,
+			_ agenttelemetry.Component,
 		) error {
 
 			defer StopAgentWithDefaults(server, agentAPI)

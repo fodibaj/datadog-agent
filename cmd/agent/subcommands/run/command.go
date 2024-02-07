@@ -32,6 +32,7 @@ import (
 	"github.com/DataDog/datadog-agent/cmd/agent/gui"
 	"github.com/DataDog/datadog-agent/cmd/agent/subcommands/run/internal/clcrunnerapi"
 	"github.com/DataDog/datadog-agent/cmd/manager"
+	"github.com/DataDog/datadog-agent/comp/core/agenttelemetry"
 
 	// checks implemented as components
 
@@ -207,6 +208,7 @@ func run(log log.Component,
 	agentAPI internalAPI.Component,
 	_ packagesigning.Component,
 	statusComponent status.Component,
+	_ agenttelemetry.Component,
 ) error {
 	defer func() {
 		stopAgent(cliParams, server, agentAPI)
