@@ -69,9 +69,10 @@ const (
 	pauseContainerRegistryK8sIo = `image:registry\.k8s\.io/pause.*`
 
 	// filter prefixes for inclusion/exclusion
-	imageFilterPrefix         = `image:`
-	nameFilterPrefix          = `name:`
-	kubeNamespaceFilterPrefix = `kube_namespace:`
+	imageFilterPrefix = `image:`
+	nameFilterPrefix  = `name:`
+	// KubeNamespaceFilterPrefix if the prefix used for Kubernetes namespaces
+	KubeNamespaceFilterPrefix = `kube_namespace:`
 
 	// filter based on AD annotations
 	kubeAutodiscoveryAnnotation          = "ad.datadoghq.com/%sexclude"
@@ -123,8 +124,8 @@ func parseFilters(filters []string) (imageFilters, nameFilters, namespaceFilters
 				continue
 			}
 			nameFilters = append(nameFilters, r)
-		case strings.HasPrefix(filter, kubeNamespaceFilterPrefix):
-			r, err := filterToRegex(filter, kubeNamespaceFilterPrefix)
+		case strings.HasPrefix(filter, KubeNamespaceFilterPrefix):
+			r, err := filterToRegex(filter, KubeNamespaceFilterPrefix)
 			if err != nil {
 				filterErrs = append(filterErrs, err.Error())
 				continue
