@@ -143,6 +143,7 @@ build do
             # (also requires `extra_package_file` directive in project def)
             mkdir "/etc/datadog-agent/checks.d"
             mkdir "/var/log/datadog"
+            mkdir "/var/run/datadog"
 
             # remove unused configs
             delete "/etc/datadog-agent/conf.d/apm.yaml.default"

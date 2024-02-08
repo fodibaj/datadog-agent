@@ -260,6 +260,7 @@ if linux_target?
   extra_package_file '/etc/datadog-agent/'
   extra_package_file '/usr/bin/dd-agent'
   extra_package_file '/var/log/datadog/'
+  extra_package_file '/var/run/datadog/'
 end
 
 # all flavors use the same package scripts
