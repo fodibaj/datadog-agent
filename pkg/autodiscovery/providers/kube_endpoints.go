@@ -10,6 +10,7 @@ package providers
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
@@ -97,6 +98,13 @@ func NewKubeEndpointsConfigProvider(*config.ConfigurationProviders) (ConfigProvi
 		return nil, fmt.Errorf("cannot add event handler to endpoint informer: %s", err)
 	}
 
+	if config.Datadog.GetBool("cluster_checks.support_hybrid_ignore_ad_tags") {
+		_ = log.Warnf("The `cluster_checks.support_hybrid_ignore_ad_tags` flag is" +
+			" deprecated and will be removed in a future version. Please replace " +
+			"`ad.datadoghq.com/endpoints.ignore_autodiscovery_tags` in your service annotations" +
+			"using adv2 for check specification and adv1 for `ignore_autodiscovery_tags`.")
+	}
+
 	return p, nil
 }
 
@@ -106,9 +114,7 @@ func (k *kubeEndpointsConfigProvider) String() string {
 }
 
 // Collect retrieves services from the apiserver, builds Config objects and returns them
-//
-//nolint:revive // TODO(CINT) Fix revive linter
-func (k *kubeEndpointsConfigProvider) Collect(ctx context.Context) ([]integration.Config, error) {
+func (k *kubeEndpointsConfigProvider) Collect(context.Context) ([]integration.Config, error) {
 	services, err := k.serviceLister.List(labels.Everything())
 	if err != nil {
 		return nil, err
@@ -116,15 +122,15 @@ func (k *kubeEndpointsConfigProvider) Collect(ctx context.Context) ([]integratio
 	k.setUpToDate(true)
 
 	var generatedConfigs []integration.Config
-	parsedConfigsInfo := k.parseServiceAnnotationsForEndpoints(services)
-	for _, config := range parsedConfigsInfo {
-		kep, err := k.endpointsLister.Endpoints(config.namespace).Get(config.name)
+	parsedConfigsInfo := k.parseServiceAnnotationsForEndpoints(services, config.Datadog)
+	for _, conf := range parsedConfigsInfo {
+		kep, err := k.endpointsLister.Endpoints(conf.namespace).Get(conf.name)
 		if err != nil {
-			log.Errorf("Cannot get Kubernetes endpoints: %s", err)
+			_ = log.Errorf("Cannot get Kubernetes endpoints: %s", err)
 			continue
 		}
-		generatedConfigs = append(generatedConfigs, generateConfigs(config.tpl, config.resolveMode, kep)...)
-		endpointsID := apiserver.EntityForEndpoints(config.namespace, config.name, "")
+		generatedConfigs = append(generatedConfigs, generateConfigs(conf.tpl, conf.resolveMode, kep)...)
+		endpointsID := apiserver.EntityForEndpoints(conf.namespace, conf.name, "")
 		k.Lock()
 		k.monitoredEndpoints[endpointsID] = true
 		k.Unlock()
@@ -133,9 +139,7 @@ func (k *kubeEndpointsConfigProvider) Collect(ctx context.Context) ([]integratio
 }
 
 // IsUpToDate allows to cache configs as long as no changes are detected in the apiserver
-//
-//nolint:revive // TODO(CINT) Fix revive linter
-func (k *kubeEndpointsConfigProvider) IsUpToDate(ctx context.Context) (bool, error) {
+func (k *kubeEndpointsConfigProvider) IsUpToDate(context.Context) (bool, error) {
 	return k.upToDate, nil
 }
 
@@ -145,13 +149,13 @@ func (k *kubeEndpointsConfigProvider) invalidate(obj interface{}) {
 		// It's possible that we got a DeletedFinalStateUnknown here
 		deletedState, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {
-			log.Errorf("Received unexpected object: %T", obj)
+			_ = log.Errorf("Received unexpected object: %T", obj)
 			return
 		}
 
 		castedObj, ok = deletedState.Obj.(*v1.Service)
 		if !ok {
-			log.Errorf("Expected DeletedFinalStateUnknown to contain *v1.Service, got: %T", deletedState.Obj)
+			_ = log.Errorf("Expected DeletedFinalStateUnknown to contain *v1.Service, got: %T", deletedState.Obj)
 			return
 		}
 	}
@@ -168,13 +172,13 @@ func (k *kubeEndpointsConfigProvider) invalidateIfChangedService(old, obj interf
 	// nil pointers are safely handled by the casting logic.
 	castedObj, ok := obj.(*v1.Service)
 	if !ok {
-		log.Errorf("Expected a *v1.Service type, got: %T", obj)
+		_ = log.Errorf("Expected a *v1.Service type, got: %T", obj)
 		return
 	}
 	// Cast the old object, invalidate on casting error
 	castedOld, ok := old.(*v1.Service)
 	if !ok {
-		log.Errorf("Expected a *v1.Service type, got: %T", old)
+		_ = log.Errorf("Expected a *v1.Service type, got: %T", old)
 		k.setUpToDate(false)
 		return
 	}
@@ -194,13 +198,13 @@ func (k *kubeEndpointsConfigProvider) invalidateIfChangedEndpoints(old, obj inte
 	// nil pointers are safely handled by the casting logic.
 	castedObj, ok := obj.(*v1.Endpoints)
 	if !ok {
-		log.Errorf("Expected an *v1.Endpoints type, got: %T", obj)
+		_ = log.Errorf("Expected an *v1.Endpoints type, got: %T", obj)
 		return
 	}
 	// Cast the old object, invalidate on casting error
 	castedOld, ok := old.(*v1.Endpoints)
 	if !ok {
-		log.Errorf("Expected a *v1.Endpoints type, got: %T", old)
+		_ = log.Errorf("Expected a *v1.Endpoints type, got: %T", old)
 		k.setUpToDate(false)
 		return
 	}
@@ -225,7 +229,7 @@ func (k *kubeEndpointsConfigProvider) setUpToDate(v bool) {
 	k.upToDate = v
 }
 
-func (k *kubeEndpointsConfigProvider) parseServiceAnnotationsForEndpoints(services []*v1.Service) []configInfo {
+func (k *kubeEndpointsConfigProvider) parseServiceAnnotationsForEndpoints(services []*v1.Service, cfg config.Config) []configInfo {
 	var configsInfo []configInfo
 
 	setEndpointIDs := map[string]struct{}{}
@@ -241,13 +245,13 @@ func (k *kubeEndpointsConfigProvider) parseServiceAnnotationsForEndpoints(servic
 
 		endptConf, errors := utils.ExtractTemplatesFromAnnotations(endpointsID, svc.GetAnnotations(), kubeEndpointID)
 		for _, err := range errors {
-			log.Errorf("Cannot parse endpoint template for service %s/%s: %s", svc.Namespace, svc.Name, err)
+			_ = log.Errorf("Cannot parse endpoint template for service %s/%s: %s", svc.Namespace, svc.Name, err)
 		}
 
 		if len(errors) > 0 {
 			errMsgSet := make(ErrorMsgSet)
 			for _, err := range errors {
-				log.Errorf("Cannot parse endpoint template for service %s/%s: %s", svc.Namespace, svc.Name, err)
+				_ = log.Errorf("Cannot parse endpoint template for service %s/%s: %s", svc.Namespace, svc.Name, err)
 				errMsgSet[err.Error()] = struct{}{}
 			}
 			k.configErrors[endpointsID] = errMsgSet
@@ -260,8 +264,12 @@ func (k *kubeEndpointsConfigProvider) parseServiceAnnotationsForEndpoints(servic
 			resolveMode = endpointResolveMode(value)
 		}
 
+		ignoreAdForHybridScenariosTags, _ := strconv.ParseBool(svc.GetAnnotations()[kubeEndpointAnnotationPrefix+"ignore_autodiscovery_tags"])
 		for i := range endptConf {
 			endptConf[i].Source = "kube_endpoints:" + endpointsID
+			if cfg.GetBool("cluster_checks.support_hybrid_ignore_ad_tags") {
+				endptConf[i].IgnoreAutodiscoveryTags = endptConf[i].IgnoreAutodiscoveryTags || ignoreAdForHybridScenariosTags
+			}
 			configsInfo = append(configsInfo, configInfo{
 				tpl:         endptConf[i],
 				namespace:   svc.Namespace,
@@ -281,10 +289,10 @@ func (k *kubeEndpointsConfigProvider) parseServiceAnnotationsForEndpoints(servic
 // generateConfigs creates a config template for each Endpoints IP
 func generateConfigs(tpl integration.Config, resolveMode endpointResolveMode, kep *v1.Endpoints) []integration.Config {
 	if kep == nil {
-		log.Warn("Nil Kubernetes Endpoints object, cannot generate config templates")
+		_ = log.Warn("Nil Kubernetes Endpoints object, cannot generate config templates")
 		return []integration.Config{tpl}
 	}
-	generatedConfigs := []integration.Config{}
+	generatedConfigs := make([]integration.Config, 0)
 	namespace := kep.Namespace
 	name := kep.Name
 
@@ -295,7 +303,7 @@ func generateConfigs(tpl integration.Config, resolveMode endpointResolveMode, ke
 	case kubeEndpointResolveIP:
 	// In case of unknown value, fallback to auto
 	default:
-		log.Warnf("Unknown resolve value: %s for endpoint: %s/%s - fallback to auto mode", resolveMode, namespace, name)
+		_ = log.Warnf("Unknown resolve value: %s for endpoint: %s/%s - fallback to auto mode", resolveMode, namespace, name)
 		fallthrough
 	// Auto or empty (default to auto): we try to resolve the POD behind this address
 	case "":
