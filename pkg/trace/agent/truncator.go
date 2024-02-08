@@ -70,21 +70,14 @@ const (
 )
 
 // isStructuredMetaKey returns true when the given key is a structured meta tag.
-// Structured meta tags are identified by their suffixes: .json, .msgpack or
-// .protobuf. Examples include _dd.appsec.json and _dd.iast.json.
+// Structured meta tags are prefixed by `_dd.` and suffixed by .json, .msgpack
+// or .protobuf. Examples include _dd.appsec.json and _dd.iast.json.
 // The suffix also serves describing the serialization format in use.
 func isStructuredMetaKey(key string) bool {
-	var structuredMetaKeySuffixes = [...]string{
-		".json",
-		".msgpack",
-		".protobuf",
-	}
-	for _, suffix := range structuredMetaKeySuffixes {
-		if strings.HasSuffix(key, suffix) {
-
-		}
-	}
-	return false
+	return strings.HasPrefix(key, "_dd.") &&
+		(strings.HasSuffix(key, ".json") ||
+			strings.HasSuffix(key, ".msgpack") ||
+			strings.HasSuffix(key, ".protobuf"))
 }
 
 // TruncateResource truncates a span's resource to the maximum allowed length.

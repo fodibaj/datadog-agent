@@ -6,6 +6,7 @@
 package agent
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -107,16 +108,24 @@ func TestTruncateStructuredMetaTag(t *testing.T) {
 	key := strings.Repeat("k", MaxMetaKeyLen+1)
 	val := strings.Repeat("v", MaxMetaValLen+1)
 
-	for suffix := range StructuredMetaKeySuffixes {
-		suffix := suffix
+	for _, structuredSuffix := range []string{
+		"json",
+		"protobuf",
+		"msgpack",
+	} {
+		suffix := structuredSuffix
 		t.Run(suffix, func(t *testing.T) {
 			a := &Agent{conf: config.New()}
 			s := testSpan()
-			key := key + suffix
-			s.Meta[key] = val
+			structuredTagName := fmt.Sprintf("_dd.%s.%s", key, suffix)
+			notStructuredTagName := fmt.Sprintf("key.%s", suffix)
+			s.Meta[structuredTagName] = val
 			a.Truncate(s)
-			// The value must not be truncated.
-			require.Equal(t, val, s.Meta[key])
+			// The structured value must not be truncated.
+			require.Equal(t, val, s.Meta[structuredTagName])
+			// The non structured value must be truncated.
+			require.NotEqual(t, val, s.Meta[notStructuredTagName])
+			require.Len(t, s.Meta[notStructuredTagName], MaxMetaValLen)
 		})
 	}
 }
